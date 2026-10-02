@@ -1,8 +1,9 @@
 export default {
+  orderedProperties: ['min', 'max'],
   properties: {
     multiple: { type: 'boolean' },
-    min: { type: 'integer' },
-    max: { type: 'integer' },
+    min: { type: 'integer', minimum: 0 },
+    max: { type: 'integer', minimum: 0 },
     options: {
       type: 'array',
       uniqueOptionValues: true,

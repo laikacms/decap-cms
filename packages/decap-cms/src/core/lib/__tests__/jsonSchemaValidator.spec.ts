@@ -533,4 +533,20 @@ describe('validateJSONSchema', () => {
       expect(validateJSONSchema(schema, { widget: 'unknown' })).toEqual([]);
     });
   });
+
+  describe('orderedProperties', () => {
+    const schema: JSONSchema = { type: 'object', orderedProperties: ['min', 'max'] };
+
+    it('flags low greater than high', () => {
+      const errors = validateJSONSchema(schema, { min: 3, max: 2 });
+      expect(errors).toHaveLength(1);
+      expect(errors[0].keyword).toBe('orderedProperties');
+    });
+
+    it('accepts equal, ordered, or missing values', () => {
+      expect(validateJSONSchema(schema, { min: 2, max: 2 })).toEqual([]);
+      expect(validateJSONSchema(schema, { min: 1, max: 2 })).toEqual([]);
+      expect(validateJSONSchema(schema, { min: 5 })).toEqual([]);
+    });
+  });
 });

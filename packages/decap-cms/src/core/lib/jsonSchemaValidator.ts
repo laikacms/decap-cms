@@ -13,7 +13,7 @@ import { isEqual } from 'lodash-es';
  * - numbers: `minimum`, `maximum`
  * - combinators: `oneOf`, `anyOf`, `allOf`, `not`, `if`/`then`/`else`
  *
- * Plus four non-standard keywords:
+ * Plus five non-standard keywords:
  *
  * - `uniqueOptionValues`: option lists (bare string/number or `{ value }`
  *   objects, mixed freely) must not repeat the same effective value
@@ -21,6 +21,8 @@ import { isEqual } from 'lodash-es';
  * - `uniqueItemProperties` (from ajv-keywords): listed properties must be
  *   unique across the array's object items
  * - `instanceof` (from ajv-keywords): only `'RegExp'` is supported
+ * - `orderedProperties`: `[low, high]` property names; when both hold numbers,
+ *   `low` must not exceed `high` (e.g. `min` <= `max`)
  * - `widgets`: map of widget name to schema; an object value with a string
  *   `widget` property is additionally validated against the matching widget
  *   schema (replaces ajv-keywords' `select`/`selectCases` dispatch)
@@ -44,6 +46,7 @@ export interface JSONSchema {
   uniqueItems?: boolean;
   uniqueItemProperties?: string[];
   uniqueOptionValues?: boolean;
+  orderedProperties?: [string, string];
   minLength?: number;
   maxLength?: number;
   pattern?: string;
@@ -247,6 +250,22 @@ function validateObject(
         `must NOT have fewer than ${schema.minProperties} properties`,
       ),
     );
+  }
+
+  if (schema.orderedProperties !== undefined) {
+    const [low, high] = schema.orderedProperties;
+    const lowValue = obj[low];
+    const highValue = obj[high];
+    if (typeof lowValue === 'number' && typeof highValue === 'number' && lowValue > highValue) {
+      errors.push(
+        error(
+          path,
+          'orderedProperties',
+          { low, high },
+          `property '${low}' must NOT be greater than property '${high}'`,
+        ),
+      );
+    }
   }
 
   if (schema.dependencies !== undefined) {
