@@ -57,8 +57,8 @@ describe('randomUUID', () => {
 
       const uuid = randomUUID();
 
-      expect(uuid).toMatch(/^k-[0-9a-z]+-[0-9a-z]+$/);
-      expect(uuid).not.toMatch(UUID_V4_PATTERN);
+      expect(uuid).toMatch(UUID_V4_PATTERN);
+      expect(randomUUID()).not.toBe(uuid);
     } finally {
       if (originalDescriptor) {
         Object.defineProperty(globalThis, 'crypto', originalDescriptor);
