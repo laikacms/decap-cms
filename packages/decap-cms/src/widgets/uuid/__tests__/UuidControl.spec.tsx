@@ -45,6 +45,35 @@ describe('UuidControl', () => {
     expect(onChange.mock.calls[0][0]).toMatch(/^[a-z2-7]{26}$/);
   });
 
+  it('emits distinct 26-char Base32 ids when crypto is unavailable', () => {
+    const originalDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'crypto');
+    Object.defineProperty(globalThis, 'crypto', { value: undefined, configurable: true, writable: true });
+
+    try {
+      const emitted: string[] = [];
+      for (let mount = 0; mount < 2; mount++) {
+        const onChange = vi.fn();
+        const { unmount } = render(
+          <UuidControl
+            {...defaultProps}
+            onChange={onChange}
+            field={{ name: 'id', widget: 'uuid', use_b32_encoding: true } as any}
+          />,
+        );
+        emitted.push(onChange.mock.calls[0][0]);
+        unmount();
+      }
+
+      expect(emitted[0]).toMatch(/^[a-z2-7]{26}$/);
+      expect(emitted[1]).toMatch(/^[a-z2-7]{26}$/);
+      expect(emitted[0]).not.toBe(emitted[1]);
+    } finally {
+      if (originalDescriptor) {
+        Object.defineProperty(globalThis, 'crypto', originalDescriptor);
+      }
+    }
+  });
+
   it('preserves an existing value and does not call onChange', () => {
     const onChange = vi.fn();
     const { container } = render(
