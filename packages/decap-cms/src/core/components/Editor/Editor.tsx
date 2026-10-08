@@ -181,6 +181,7 @@ function Editor({ newRecord = false, collectionName, slug, renderNotFound }: Edi
   if (
     entryDraft == null
     || (entryDraft as any).entry === undefined
+    || !draftKey
     || (entry && (entry as any).isFetching)
   ) {
     return renderLoader
