@@ -225,3 +225,43 @@ describe('Editor - DCMS-655 local backup recovery prompt does not double-fire', 
     expect(falsyPrevCalls).toHaveLength(2);
   });
 });
+
+describe('Editor - LCMS-1007 laika backend new-entry premature widget mount', () => {
+  // When the laika backend waits for the media library to load over the network,
+  // entryDraft.key stays '' (initialState). The editor must render a loader —
+  // not EditorInterface — so that widgets cannot fire DRAFT_CHANGE_FIELD before
+  // DRAFT_CREATE_EMPTY has been dispatched, which would set hasChanged=true and
+  // make the guard in createEmptyDraft bail, leaving the draft permanently dirty.
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('renders the loader when draftKey is empty (draft not yet initialized)', () => {
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      draftKey: '',
+      entryDraft: { entry: {}, fieldsMetaData: {}, fieldsErrors: {}, hasChanged: false, key: '' },
+    } as any);
+
+    const { container, queryByTagName } = render(
+      <Editor collectionName="posts" />,
+    ) as any;
+
+    // EditorInterface must NOT have been mounted
+    expect(container.querySelector('mock-editor-interface')).toBeNull();
+    // The mock Loader should be present
+    expect(container.querySelector('mock-loader')).not.toBeNull();
+  });
+
+  it('renders EditorInterface once draftKey is set', () => {
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      draftKey: 'abc-123',
+      entryDraft: { entry: { slug: '', newRecord: true }, fieldsMetaData: {}, fieldsErrors: {}, hasChanged: false, key: 'abc-123' },
+    } as any);
+
+    const { container } = render(<Editor collectionName="posts" />);
+
+    expect(container.querySelector('mock-editor-interface')).not.toBeNull();
+  });
+});
