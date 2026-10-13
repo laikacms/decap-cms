@@ -181,6 +181,15 @@ the original project, visit [decapcms.org](https://decapcms.org/).
 Everything here builds on their work, and the Decap maintainers are welcome to adopt any part of
 this fork upstream.
 
+During development, [Sveltia CMS](https://github.com/sveltia/sveltia-cms) by
+[Kohei Yoshino](https://github.com/kyoshino) served as an inspiration. Many of the quality of life features and small improvements came directly from Sveltia and their roadmap. Sveltia started as a Netlify/Decap CMS successor and
+showed what a Git-based CMS could look like with the same config format: local-first editing, a
+faster and more polished editor, better i18n, and a long list of upstream Decap issues solved along
+the way. Props to Sveltia both for those features and for how it managed its fork: a clear
+compatibility story and a steady release
+cadence. Where this fork mirrors a Sveltia feature, the idea is theirs; the implementation here is a
+separate one written for this codebase.
+
 ## Change log
 
 This project adheres to [Semantic Versioning](http://semver.org/). Every release is documented on
