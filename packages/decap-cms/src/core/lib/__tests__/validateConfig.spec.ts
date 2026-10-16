@@ -13,6 +13,7 @@ import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index'
 import booleanSchema from '@/widgets/boolean/schema';
 import fileSchema from '@/widgets/file/schema';
 import imageSchema from '@/widgets/image/schema';
+import objectSchema from '@/widgets/object/schema';
 
 // The registry is automocked; give the entry-format getters the state the fat
 // entries produce at runtime (all three built-in packs registered).
@@ -679,6 +680,41 @@ describe('config', () => {
             }),
           );
         }).not.toThrow();
+      });
+    });
+
+    describe('object widget schema (DCMS-2533)', () => {
+      beforeEach(() => {
+        vi.mocked(getWidgets).mockImplementation(
+          () => [{ name: 'object', schema: objectSchema }, { name: 'string' }],
+        );
+      });
+
+      afterEach(() => {
+        vi.mocked(getWidgets).mockImplementation(() => [{}]);
+      });
+
+      const objectConfig = (extra: Record<string, unknown>) =>
+        merge({}, validConfig, {
+          collections: [{ fields: [{ name: 'address', widget: 'object', ...extra }] }],
+        });
+
+      it('throws for an object field with neither fields nor field', () => {
+        expect(() => {
+          validateConfig(objectConfig({}));
+        }).toThrowError();
+      });
+
+      it('accepts an object field with fields', () => {
+        expect(() => {
+          validateConfig(objectConfig({ fields: [{ name: 'city', widget: 'string' }] }));
+        }).not.toThrowError();
+      });
+
+      it('accepts an object field with a single field', () => {
+        expect(() => {
+          validateConfig(objectConfig({ field: { name: 'city', widget: 'string' } }));
+        }).not.toThrowError();
       });
     });
 
