@@ -13,13 +13,8 @@ vi.mock('@/core/i18n', () => ({
   },
 }));
 
-vi.mock('../../core/hooks/useRedux', () => ({
-  useAppDispatch: () => () => undefined,
-  useAppSelector: (selector: (s: unknown) => unknown) => selector({}),
-}));
-
-vi.mock('../../core/actions/media', () => ({
-  boundGetAsset: () => () => ({ toString: () => 'asset://example.png' }),
+vi.mock('../../core/hooks/useGetAsset', () => ({
+  useGetAsset: () => () => ({ toString: () => 'asset://example.png' }),
 }));
 
 vi.mock('../../core/reducers/collections', () => ({
