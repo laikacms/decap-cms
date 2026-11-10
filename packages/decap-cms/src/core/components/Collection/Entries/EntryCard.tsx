@@ -1,9 +1,8 @@
 import styled from '@emotion/styled';
 import React, { useEffect, useState } from 'react';
 
-import { boundGetAsset } from '@/core/actions/media';
 import { VIEW_STYLE_GRID, VIEW_STYLE_LIST } from '@/core/constants/collectionViews';
-import { useAppDispatch } from '@/core/hooks/useRedux';
+import { useGetAsset } from '@/core/hooks/useGetAsset';
 import { useTranslate } from '@/core/i18n';
 import { selectEntryCollectionTitle } from '@/core/reducers/collections';
 import { Link } from '@/core/routing/Link';
@@ -153,11 +152,7 @@ export default function EntryCard({
   workflowStatus,
 }: EntryCardProps) {
   const t = useTranslate();
-  const dispatch = useAppDispatch();
-  const getAsset = React.useMemo(
-    () => boundGetAsset(dispatch, collection, entry),
-    [dispatch, collection, entry],
-  );
+  const getAsset = useGetAsset(collection, entry);
 
   const summary = selectEntryCollectionTitle(collection, entry);
   const path = `/collections/${collection.name}/entries/${entry.slug}`;

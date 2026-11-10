@@ -6,6 +6,7 @@ import { getAllEntries, tryLoadEntry } from '@/core/actions/entries';
 import { boundGetAsset } from '@/core/actions/media';
 import { ErrorBoundary } from '@/core/components/UI';
 import { INFERABLE_FIELDS } from '@/core/constants/fieldInference';
+import { useGetAsset } from '@/core/hooks/useGetAsset';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
 import { getPreviewStyles, getPreviewTemplate, getRemarkPlugins, resolveWidget } from '@/core/lib/registry';
@@ -439,10 +440,7 @@ export default function ConnectedPreviewPane(props: ConnectedPreviewPaneProps) {
     () => ({ config, collections, integrations, entries, mediaLibrary }),
     [config, collections, integrations, entries, mediaLibrary],
   );
-  const getAsset = React.useMemo(
-    () => boundGetAsset(dispatch as any, props.collection, props.entry),
-    [dispatch, props.collection, props.entry],
-  );
+  const getAsset = useGetAsset(props.collection, props.entry);
 
   return (
     <PreviewPane

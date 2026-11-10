@@ -9,7 +9,7 @@ import {
   tryLoadEntry,
   validateMetaField,
 } from '@/core/actions/entries';
-import { addAsset, boundGetAsset } from '@/core/actions/media';
+import { addAsset } from '@/core/actions/media';
 import {
   clearMediaControl,
   openMediaLibrary,
@@ -18,6 +18,7 @@ import {
   removeMediaControl,
 } from '@/core/actions/mediaLibrary';
 import { clearSearch, query } from '@/core/actions/search';
+import { useGetAsset } from '@/core/hooks/useGetAsset';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
 import { resolveWidget } from '@/core/lib/registry';
@@ -490,11 +491,6 @@ const stable = {
     const state = store.getState() as State;
     return state.entryDraft.entry;
   },
-
-  getBoundedAsset(collection: Collection, entry: EntryMap) {
-    const dispatch = store.dispatch;
-    return boundGetAsset(dispatch as never, collection, entry);
-  },
 };
 
 interface ConnectedEditorControlProps {
@@ -536,12 +532,7 @@ export default function ConnectedEditorControl(props: ConnectedEditorControlProp
     () => stable.validateMetaField(collection),
     [collection],
   );
-  const boundGetAssetForEntry = React.useMemo(
-    () => stable.getBoundedAsset(collection, stable.getEntry()),
-    // recompute when collection changes; entry is read live via stable.getEntry on each call
-
-    [collection],
-  );
+  const boundGetAssetForEntry = useGetAsset(collection, stable.getEntry());
 
   const inner = (
     <EditorControl
