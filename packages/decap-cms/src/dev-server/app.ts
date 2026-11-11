@@ -34,6 +34,10 @@ export interface DevServerApp {
 
 type AppOptions = {
   logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>,
+  /** The CMS origin allowed to call the server. Falls back to ORIGIN, then localhost. */
+  origin?: string | undefined,
+  /** The address the server is bound to. Falls back to BIND_HOST, then this machine only. */
+  bindHost?: string | undefined,
 };
 
 function sendJson(res: http.ServerResponse, code: number, payload: unknown) {
@@ -174,10 +178,10 @@ async function runHandlers(handlers: Handler[], req: DevServerRequest, res: DevS
   }
 }
 
-export function createApp({ logger }: AppOptions): DevServerApp {
+export function createApp({ logger, origin, bindHost: host }: AppOptions): DevServerApp {
   const routes = new Map<string, Handler[]>();
-  const allowedOrigin: AllowedOrigin = process.env.ORIGIN || LOCALHOST_ORIGIN;
-  const bindHost = process.env.BIND_HOST;
+  const allowedOrigin: AllowedOrigin = origin || process.env.ORIGIN || LOCALHOST_ORIGIN;
+  const bindHost = host || process.env.BIND_HOST;
   const checkHost = !bindHost || isLoopbackAddress(bindHost);
 
   const requestListener: http.RequestListener = async (req, res) => {
@@ -273,6 +277,8 @@ export async function startServer(
       throw e;
     }
   }
-  logger.info(`Decap CMS Proxy Server listening on port ${port} (this machine only; set BIND_HOST to expose it)`);
+  // The bound port, so `port: 0` reports the port it was given.
+  const boundPort = (server.address() as AddressInfo).port;
+  logger.info(`Decap CMS Proxy Server listening on port ${boundPort} (this machine only; set BIND_HOST to expose it)`);
   return server;
 }

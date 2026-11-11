@@ -1,37 +1,23 @@
 import 'dotenv/config';
 
-import { createApp, startServer } from './app';
-import { registerMiddleware as registerLocalFs } from './middlewares/localFs';
-import { registerMiddleware as registerLocalGit } from './middlewares/localGit';
+import { runDevServer } from './run';
 
-const port = parseInt(process.env.PORT || '8081', 10);
-const host = process.env.BIND_HOST;
+export { createLogger, runDevServer } from './run';
+export type { DevServerLogger, DevServerOptions } from './run';
 
-(async () => {
-  const logger = console;
-  const app = createApp({ logger });
-  const options = {
-    logger,
-  };
+/**
+ * Importing this module starts the server from the environment (PORT,
+ * BIND_HOST, MODE, GIT_REPO_DIRECTORY, ORIGIN, LOG_LEVEL, also read from
+ * `.env`), and exits the process if it cannot. A caller that wants to start
+ * it itself, with options and its own error handling, sets this flag on
+ * `globalThis` before importing and calls `runDevServer`: the `decap dev`
+ * CLI does.
+ */
+export const EMBEDDED_FLAG = Symbol.for('decap-cms.dev-server.embedded');
 
-  try {
-    const mode = process.env.MODE || 'fs';
-    if (mode === 'fs') {
-      registerLocalFs(app, options);
-    } else if (mode === 'git') {
-      await registerLocalGit(app, options);
-    } else {
-      throw new Error(`Unknown proxy mode '${mode}'`);
-    }
-  } catch (e: unknown) {
-    logger.error(e instanceof Error ? e.message : 'Unknown error');
+if (!(globalThis as Record<symbol, unknown>)[EMBEDDED_FLAG]) {
+  runDevServer().catch((e: unknown) => {
+    console.error(e instanceof Error ? e.message : 'Unknown error');
     process.exit(1);
-  }
-
-  try {
-    return await startServer(app, { port, host, logger });
-  } catch (e: unknown) {
-    logger.error(e instanceof Error ? e.message : 'Unknown error');
-    process.exit(1);
-  }
-})();
+  });
+}

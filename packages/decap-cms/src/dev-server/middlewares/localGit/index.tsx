@@ -22,7 +22,7 @@ import {
   labelToStatus,
   parseContentKey,
   statusToLabel,
-} from '@/lib/util/index';
+} from '@/lib/util/APIUtils';
 import { createMutex } from '@/lib/util/mutex';
 import { parse } from '@/lib/util/what-the-diff';
 
@@ -476,11 +476,13 @@ export function localGitMiddleware({ repoPath, logger }: GitOptions) {
 
 type Options = {
   logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>,
+  /** The repository to serve. Falls back to GIT_REPO_DIRECTORY, then the current directory. */
+  repoPath?: string | undefined,
 };
 
 export async function registerMiddleware(app: DevServerApp, options: Options) {
   const { logger } = options;
-  const repoPath = path.resolve(process.env.GIT_REPO_DIRECTORY || process.cwd());
+  const repoPath = path.resolve(options.repoPath || process.env.GIT_REPO_DIRECTORY || process.cwd());
   await validateRepo({ repoPath });
   app.post('/api/v1', validateRequest(getSchema({ repoPath })));
   app.post('/api/v1', localGitMiddleware({ repoPath, logger }));

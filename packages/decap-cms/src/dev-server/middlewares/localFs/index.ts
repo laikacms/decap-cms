@@ -155,11 +155,13 @@ export function getSchema({ repoPath }: { repoPath: string }) {
 
 type Options = {
   logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>,
+  /** The repository to serve. Falls back to GIT_REPO_DIRECTORY, then the current directory. */
+  repoPath?: string | undefined,
 };
 
 export function registerMiddleware(app: DevServerApp, options: Options) {
   const { logger } = options;
-  const repoPath = path.resolve(process.env.GIT_REPO_DIRECTORY || process.cwd());
+  const repoPath = path.resolve(options.repoPath || process.env.GIT_REPO_DIRECTORY || process.cwd());
   app.post('/api/v1', validateRequest(getSchema({ repoPath })));
   app.post('/api/v1', localFsMiddleware({ repoPath, logger }));
   logger.info(`Decap CMS File System Proxy Server configured with ${repoPath}`);
