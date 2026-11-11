@@ -1,6 +1,6 @@
 # Upstream sync ledger
 
-Porting decaporg/decap-cms `main` into this branch. Fork point `6ef2f9bdf` (2026-04-22), cut-off `1d5868347` (2026-09-22). One row per upstream commit, oldest first. Each port is its own commit with a `Ported-from: decaporg/decap-cms@<sha> (#PR)` trailer.
+Porting decaporg/decap-cms `main` into this branch. Fork point `6ef2f9bdf` (2026-04-22). First sync up to `1d5868347` (2026-09-22), second sync up to `61ceb6e06` (2026-10-28). One row per upstream commit, oldest first within each sync. Each port is its own commit with a `Ported-from: decaporg/decap-cms@<sha> (#PR)` trailer.
 
 Statuses: `todo` · `done` · `ported-by-laika` (already on v4-beta before this sync) · `verify` (probably nothing to port; confirm) · `dep-check` (confirm v4's version is at least this new) · `n/a` (doesn't apply to v4) · `skip` (decided against) · `ask` (needs a decision).
 
@@ -30,6 +30,25 @@ Statuses: `todo` · `done` · `ported-by-laika` (already on v4-beta before this 
 - Open (needs a decision): unpublish deletes the published files before it creates the draft, as upstream does. When creating the draft fails (on GitLab: a leftover `cms/<collection>/<slug>` branch with no open MR), the published entry is gone and no draft exists. Proposed: create the draft first, delete second.
 - Open: while an existing entry loads, the editor briefly shows "Untitled", "Delete unpublished entry" and an empty notes pane before the entry arrives (GitLab tester).
 - Open: opening an existing entry can show "UNSAVED CHANGES" straight away. The richtext widget re-serializes its markdown on mount, and a list nested in an object writes an empty richtext value to the wrong path before correcting it (Kitchen Sink entry). Same on untouched v4-beta.
+
+## Second sync (2026-11-11): `1d5868347..61ceb6e06`
+
+190 commits. Upstream merged its Decap Turbo line into `main` in this range (turbo-github and turbo-gitlab backends, `lib-turbo`, an S3 media library, the `decap` CLI and its dev proxy, plus core features built for it), which is most of the rows. The bug fixes and generic improvements are ported; everything Turbo is `ask` until the scope is decided. Several turbo-branch commits are rebased duplicates of first-sync rows (#7958, #7793, #7994, #7980, the reverted relation pair) and are marked as such.
+
+Open decisions:
+
+- Turbo product: port the Turbo backends, `lib-turbo`, the S3 media library and the `decap` CLI, or leave them out of v4?
+- Core features that came with Turbo and are usable without it: the deploy-status save toast and Deploys page (A4/A8), and `CMS.editor` / `CMS.registerFieldAction` (marked experimental upstream).
+- Dependencies (gated paths): v4's lockfile still has versions upstream's #8030/#8046/#8051 flagged: `smol-toml` 1.7.0 (direct dependency, the TOML codec; fixed in 1.9.0), `trim` 0.0.1 (via `remark-parse` 6, bundled; fixed in 0.0.3), `fast-uri` 3.1.8 (<3.1.9), `js-yaml` 4.3.0 (<4.3.2), `undici` 7.28.0 (jsdom, tests only), `brace-expansion` 5.0.7 (eslint, dev only), and `simple-git` 3.36.0 (dev server; upstream moved to 4 for a critical advisory with no 3.x fix).
+
+Deviations from upstream:
+
+- `d3d40d1b3`: upstream also makes `entryExist` fail on anything but a 404. On v4 a missing file is reported differently per backend (test backend: plain Error, local-fs: DOMException, dev proxy: 500), so that rule would fail every create there. Needs not-found normalised across backends first.
+- `9155f271e`: v4 keeps its key-based handling of `{{slug}}` in a collection path, so `{{slug | upper}}/index` stays upper case (upstream lowercases it again).
+- `9324b482b`: the dev server now binds 127.0.0.1/::1 and only accepts localhost origins by default. Loading the admin UI from another host name now needs `BIND_HOST` and `ORIGIN` set.
+- `f8e58aeea` (skip): the "is this entry in the workflow" shortcut, which needed three follow-up fixes upstream (`591c14591`, `ccdd71d30`, `efbd05279`); v4 keeps asking the backend per slug.
+
+Not yet checked against a real backend: `b759e3b85` (GitLab MR sha on publish), `457398989`/`c779d90b1` (GitHub notes lookup by label), `e92641821` (Bitbucket paging), `7fbecd60b` (Azure user).
 
 ## Ledger
 
@@ -135,3 +154,193 @@ Statuses: `todo` · `done` · `ported-by-laika` (already on v4-beta before this 
 | `b994417f8` | 2026-09-22 | [#7793](https://github.com/decaporg/decap-cms/pull/7793) | Feature/optimize editor performance (#7793) | ported-by-laika | 9c36573e3 | came from Laika's optimize-editor-performance branch |
 | `f269a8a4f` | 2026-09-22 | [#7994](https://github.com/decaporg/decap-cms/pull/7994) | Notes pane improvements, GitLab support (#7994) | done | 5941e825b, d6d6aa9c8 | ported together with #7563 |
 | `1d5868347` | 2026-09-22 |  | chore(release): publish | n/a |  | release commit |
+| `56ca43672` | 2026-01-08 |  | feat(proxy): wip - first draft / caching allEntriesByFolder | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `ed3a1c8fb` | 2026-01-16 |  | feat(proxy): fetch and save data in batches, await the validation to get latest data | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `09532f90b` | 2026-01-16 |  | feat(proxy): lint | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `24be973e0` | 2026-01-16 |  | feat(proxy): add supabase-github-proxy as possible backend in CmsBackendType | ask |  | Turbo backend permissions / backend config resolver: pending the Turbo decision |
+| `dc9b27cc4` | 2026-01-16 |  | feat(proxy): force reload entries after publishing if backend is supabase-github-proxy | ask |  | Turbo backend permissions / backend config resolver: pending the Turbo decision |
+| `60dfb8aba` | 2026-01-23 |  | feat(supbase-github-proxy): add filtering from github implementation to allEntriesByFolder | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `18ccebbf6` | 2026-01-25 |  | feat(supabase-github-proxy): sort files according to tree | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `a8bec9b87` | 2026-02-05 |  | feat(supabase-github-proxy): allow searching on the cached backend query | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `0b762b303` | 2026-02-05 |  | fix: revert config.yml | n/a |  | reverts a dev-test config change from the same branch |
+| `17f228ad5` | 2026-02-12 |  | feat(deap-turbo): create decap-turbo backend - wip | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `87ed3964e` | 2026-03-13 |  | feat(supabase-github-proxy): add site_id support, update readme | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `bdf52bc79` | 2026-03-13 |  | feat: update package name and enhance backend implementation with site_id support | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `8211e1919` | 2026-03-25 |  | feat(decap-turbo): add entriesByFolder method and link it to allEntriesByFolder | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `a4e8ad9e0` | 2026-05-26 |  | feat(decap-turbo): further implementation of supabase backend & token management | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `60b963ba0` | 2026-07-30 |  | feat: rename turbo keys, add backend config resolver | ask |  | Turbo backend permissions / backend config resolver: pending the Turbo decision |
+| `3a6db9fc3` | 2026-07-31 |  | feat(decap-turbo): enhance API request handling with site_id support | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `9cd8963bf` | 2026-07-31 |  | feat(decap-turbo): add backend preload config check in handleLocalBackend function | ask |  | Turbo backend permissions / backend config resolver: pending the Turbo decision |
+| `bd173a229` | 2026-08-04 |  | feat(decap-turbo): implement backend-agnostic permissions handling | ask |  | Turbo backend permissions / backend config resolver: pending the Turbo decision |
+| `a57ebb587` | 2026-08-05 |  | feat(decap-turbo): refactor authentication page for improved popup handling and UI updates | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `f8f151b25` | 2026-08-05 |  | feat(decap-turbo): update configuration handling and improve error messaging | ask |  | Turbo backend permissions / backend config resolver: pending the Turbo decision |
+| `cbf7e3470` | 2026-08-06 |  | fix: ensure updateUserCredentials defaults to a no-op function | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `7bb0c746d` | 2026-08-06 |  | refactor: improve code formatting and readability across multiple files | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `f9b4e4058` | 2026-08-07 |  | feat(decap-turbo): update Turbo login URL to use new authentication endpoint | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `ae1bd7938` | 2026-08-13 |  | feat: harden turbo backend auth, config, and API error handling | ask |  | Turbo backend permissions / backend config resolver: pending the Turbo decision |
+| `faa32555d` | 2026-08-13 |  | feat(backend-turbo): add fire-and-forget CMS usage telemetry | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `4624d9e4a` | 2026-08-13 |  | feat(backend-turbo): add telemetry, reject use_graphql, drop debug logs | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `8caaf5416` | 2026-08-14 |  | fix: reload entries after persist based on backend config | ask |  | Turbo backend permissions / backend config resolver: pending the Turbo decision |
+| `ea09b3995` | 2026-08-14 |  | feat: add turbo gitlab backend, rename turbo-github | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `8aa113e60` | 2026-08-14 |  | chore(decap-cms-backend-turbo-gitlab): add webpack config | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `479d9b0a7` | 2026-08-17 |  | fix: always route local_backend through proxy detection | ask |  | Turbo backend permissions / backend config resolver: pending the Turbo decision |
+| `a62674ab6` | 2026-08-19 |  | docs: add README for turbo-gitlab backend package | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `c66415095` | 2026-08-21 |  | feat(turbo-github,turbo-gitlab): add getToken | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `8d1995164` | 2026-08-21 |  | feat: add S3-compatible media library, remove standalone Bunny package | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `8ee54c97c` | 2026-08-24 |  | fix: dispatch doneAuthenticating after login failure | n/a |  | v4 loginUser is a createAsyncThunk; its rejected case already clears isFetching |
+| `a5280e85d` | 2026-08-25 |  | feat: exchange one-time code for tokens instead of reading them from URL | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `473577beb` | 2026-08-25 |  | fix: pass site_id as query param so exchange CORS preflight can validate it | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `1259a0ab0` | 2026-08-25 |  | fix(turbo-backends): refresh session before authenticated requests | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `37e252725` | 2026-08-26 |  | refactor: move Turbo cache writes server-side, read via collections set | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `9062ea9ae` | 2026-08-26 |  | fix(turbo-github): verify a cached entry is current before trusting it | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `14d0e9a07` | 2026-08-26 |  | feat(turbo-github): serve files collections from the Turbo cache | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `03a283d28` | 2026-08-27 |  | fix(backend-turbo-github): reinstate unsaved files in collection sync | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `4d9400bd5` | 2026-08-27 |  | feat(turbo-gitlab): sync collections server-side, matching turbo-github | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `6ce4bbff9` | 2026-08-27 |  | docs: trim caching-project narrative from comments | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `d3d40d1b3` | 2026-08-27 |  | fix(core): don't let a create overwrite an existing i18n entry | done | baadf1481 | default-locale probe only; "only a 404 means absent" not ported, see below |
+| `7b42f7c6a` | 2026-08-28 |  | feat(turbo): surface a deferred sync instead of silently short collections | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `a8534c5e9` | 2026-08-28 |  | fix: refresh stale token before setting active site id in Supabase | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `ea0a9ea7f` | 2026-08-28 |  | fix: don't let a stale trailing refresh mask a successful active-site update | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `affc35848` | 2026-08-28 |  | fix(turbo-github,turbo-gitlab): make control-plane repo/branch authoritative over config.yml | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `2f3bdd4bb` | 2026-08-28 |  | fix(widget-relation): don't let selected options crowd out search matches | n/a |  | already on v4 with the #7968 port (search results first) |
+| `eb40df66a` | 2026-08-31 |  | feat(turbo-github,turbo-gitlab): enrich cms_entry_saved telemetry | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `476ee34fa` | 2026-09-01 |  | feat(backend-turbo): add save-path metrics to cms_entry_saved event | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `9033db718` | 2026-09-01 |  | feat(backend-turbo-github): commit via Turbo edge endpoint | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `05ad284cd` | 2026-09-01 |  | feat(turbo-github): flag assets in the commit payload (B2) | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `b51a74488` | 2026-09-01 |  | fix: release editor before media library reload on entry save | done | 1b6ff7177 |  |
+| `b95546d9c` | 2026-09-02 |  | feat(turbo-github): poll site_deployments for deploy status (A3) | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `4aa5b0afc` | 2026-09-02 |  | feat(core): follow a save's deploy in one updating toast (A4) | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `6e7bee01f` | 2026-09-02 |  | fix(core): let a new save clear the previous deploy toast in every state | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `ce3ef092a` | 2026-09-02 |  | feat(core,turbo-github): async, entry-scoped deploy notifications (A4b) | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `73fc570b2` | 2026-09-02 |  | fix(turbo-github): three defects in the ledger watcher | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `a115a1906` | 2026-09-02 |  | fix(core): let an update cancel a queued dismissal | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `18278989b` | 2026-09-02 |  | feat(deploy-status): a Deploys page and a header state indicator (A8) | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `43390116c` | 2026-09-02 |  | fix(deploy-status): subscribe once the user exists, not only at mount | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `cb998a37d` | 2026-09-02 |  | refactor(deploy-status): address review of the Deploys page and indicator | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `6bce67b50` | 2026-09-02 |  | feat(deploy-status): saved entry and published-to columns, stateful nav | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `69f57764b` | 2026-09-02 |  | fix(deploy-status): only the site's own branch can be Live | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `465bdd7b0` | 2026-09-02 |  | fix(core): stop Editor crashing when its route names a collection missing from state | n/a |  | v4 withWorkflow is unused; the editor renders under CollectionGuard |
+| `295ae6dae` | 2026-09-02 |  | feat(turbo-github,turbo-gitlab): show signed-in user identity and clear session on logout | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `133dd267c` | 2026-09-02 |  | perf(turbo-github,turbo-gitlab,backend-github): cut redundant and duplicate reads | done | bff12125b | plain GitHub half; the rest is Turbo |
+| `f8e58aeea` | 2026-09-02 |  | perf(core,turbo-github): answer "is this entry in the workflow" from state | skip |  | perf shortcut answering workflow membership from state; needed three follow-up fixes upstream; v4 keeps asking the backend per slug |
+| `2792b04c9` | 2026-09-02 |  | fix: make pnpm run build and lint work under corepack-managed pnpm | n/a |  | corepack/pnpm build fix for the old monorepo |
+| `e456ac6db` | 2026-09-02 |  | fix(turbo-github,turbo-gitlab): refresh the token before fetching permissions | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `cd9b02829` | 2026-09-02 |  | perf(turbo-github): route a first editorial-workflow save through _content/commit | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `35290647f` | 2026-09-02 |  | fix(turbo-github): do not watch a deploy for an editorial-workflow save | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `591c14591` | 2026-09-02 |  | fix(core): give the unpublished-entry shortcut a freshness window | n/a |  | fixes the workflow-membership shortcut from f8e58aeea, which v4 does not have |
+| `90b58c822` | 2026-09-02 |  | fix(core,turbo-github): three defects in deploy watching | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `9edbd073f` | 2026-09-02 |  | chore(turbo-github,turbo-gitlab): unbreak type-check and lint | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `0aba0fc7a` | 2026-09-03 |  | fix(turbo-github,turbo-gitlab): treat a dead refresh token as terminal | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `feb232e87` | 2026-09-03 |  | feat(deploys): live per branch, a stalled state, and table controls | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `a32ba3051` | 2026-09-03 |  | fix(deploys): name the success state in the filter | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `b3b3a6a43` | 2026-09-03 |  | feat(deploys): filter by the state shown, and sort every column | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `b26cb2722` | 2026-09-03 |  | perf(core,turbo-github,turbo-gitlab): stop hydrating every draft, cache i18n siblings | n/a |  | core half reworks the workflow-membership shortcut; rest is Turbo |
+| `c38e1fa36` | 2026-09-04 |  | fix(turbo-github,turbo-gitlab): let config.yml's branch beat the sites row | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `27927cbbe` | 2026-09-07 |  | fix(core,media-library-s3): stop handing media libraries the refresh token | ask |  | media library context came with the Turbo branch; Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI) |
+| `1a2c097e2` | 2026-09-07 |  | fix(media-library-s3): stop logging response headers on API errors | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `28e58fd76` | 2026-09-07 |  | fix(turbo-github,turbo-gitlab): stop sending an email, and log the branch actually committed to | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `a349f2c2a` | 2026-09-09 |  | chore(core,turbo-github,turbo-gitlab,media-library-s3): clear the lint drift | n/a |  | lint drift in Turbo-era code |
+| `7f6e6b1b5` | 2026-09-09 |  | fix(core): match the preview-path sentinel by origin, not by prefix | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `5deeb6e68` | 2026-09-09 |  | fix(core): stop a persisted slug passing for a loaded workflow list | n/a |  | reverted upstream by 6bfbe4e17 |
+| `6bfbe4e17` | 2026-09-09 |  | Revert "fix(core): stop a persisted slug passing for a loaded workflow list" | n/a |  | revert |
+| `a9d5c942b` | 2026-09-09 |  | test(e2e): report unmatched routes and DOM state when a spec fails | n/a |  | Cypress triage probe |
+| `ccdd71d30` | 2026-09-09 |  | fix(core): do not let a stale listing certify a draft as published | n/a |  | fixes the workflow-membership shortcut, which v4 does not have |
+| `743a18e37` | 2026-09-09 |  | test(e2e): probe the workflow absence shortcut | n/a |  | e2e probe, reverted by 109f35b35 |
+| `efbd05279` | 2026-09-09 |  | fix(core): key a new workflow entry on the slug the backend committed | n/a |  | fixes the workflow-membership shortcut, which v4 does not have |
+| `109f35b35` | 2026-09-09 |  | Revert the e2e triage probes | n/a |  | revert of the e2e probes |
+| `1c8c55b02` | 2026-09-10 | [#7980](https://github.com/decaporg/decap-cms/pull/7980) | fix(release): verify published manifests, widen catalog: guard (#7980) | n/a |  | duplicate of 3def52921 (#7980), already n/a |
+| `65526d2da` | 2026-09-10 | [#7958](https://github.com/decaporg/decap-cms/pull/7958) | feat(widget-markdown): support inline custom editor components (#7958) | skip |  | duplicate of e857f7dac (#7958), skipped by decision 2026-10-06 |
+| `5bfbd0ac2` | 2026-09-10 |  | fix(release): choose the dist-tag, and stop losing publish flags | n/a |  | lerna release tooling |
+| `26e4fca41` | 2026-09-10 |  | chore(release): publish | n/a |  | release commit |
+| `0de9d7fc5` | 2026-09-11 |  | fix: backend name | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `fc3b64788` | 2026-09-14 |  | fix(turbo-github): send the branch this deploy edits as the commit base | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `c095e302b` | 2026-09-14 |  | chore(release): publish | n/a |  | release commit |
+| `653ed42fd` | 2026-09-11 |  | fix(relation): retry menu options after a failed query and cache only success | n/a |  | duplicate of 62b7b2400, reverted upstream |
+| `bae677650` | 2026-09-11 |  | fix(relation): guard shouldComponentUpdate when nextState is missing | n/a |  | duplicate of 66c133dfc, reverted upstream |
+| `4eadffe5a` | 2026-09-11 |  | Revert "fix(relation): retry menu options after a failed query" and its follow-up | n/a |  | revert (duplicate of 97f788a18) |
+| `048aa3bbd` | 2026-09-22 | [#7793](https://github.com/decaporg/decap-cms/pull/7793) | Feature/optimize editor performance (#7793) | ported-by-laika | 9c36573e3 | duplicate of b994417f8 (#7793) |
+| `3d9371cd4` | 2026-09-22 | [#7994](https://github.com/decaporg/decap-cms/pull/7994) | Notes pane improvements, GitLab support (#7994) | done | 5941e825b, d6d6aa9c8 | duplicate of f269a8a4f (#7994) |
+| `2414aca6e` | 2026-09-22 |  | feat: attribute Turbo notes to signed-in editor and fix github issue lookup | ask |  | Turbo notes attribution; exposes GitHub/GitLab internals for the Turbo subclasses |
+| `33e5ec65e` | 2026-09-22 |  | chore: switch CDN links from unpkg to jsdelivr | done | 02dffc34d | only the schema link in the package README was left |
+| `eb2950962` | 2026-09-22 |  | chore(release): publish | n/a |  | release commit |
+| `d6ee259ce` | 2026-10-01 |  | feat(decap): add the decap CLI and the Decap Turbo API contract | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `58f88882d` | 2026-10-01 |  | feat(decap): move decap-server into `decap dev` | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `18a6a20dc` | 2026-10-02 |  | feat(decap): turbo management commands generated from the API contract | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `2884f29fc` | 2026-10-02 |  | feat(core): editor API, field actions and the Turbo editor bridge | ask |  | editor API and field actions: pending the Turbo decision |
+| `918c48132` | 2026-10-08 |  | fix(turbo): refuse login to a site the user is not assigned to | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `fbb445dd3` | 2026-10-08 |  | fix(turbo): stop CMS tabs and the dashboard logging each other out | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `20c99e0c4` | 2026-10-08 |  | fix(core): stop a failed workflow load from retrying on every render | done | 229dec56b | requestWithBackoff half; the retry-on-render half n/a (v4 only loads on collection change) |
+| `9752f3c66` | 2026-10-08 |  | fix(core): keep generated slugs and i18n deletes within what git accepts | done | 66d54d1f9 | slug byte budget; the i18n-delete half was already v4 72c5ad8f7 |
+| `457398989` | 2026-10-08 |  | fix(github): find notes issues by label instead of search | done | b42cf0c6d |  |
+| `ef2cefaea` | 2026-10-08 |  | fix(turbo): end a dead session once instead of failing every request | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `3983a1a77` | 2026-10-08 |  | fix(turbo): make the editor bridge opt-in | ask |  | editor API and field actions: pending the Turbo decision |
+| `b98ac09d6` | 2026-10-08 |  | fix(core): keep field actions from re-rendering every field | ask |  | editor API and field actions: pending the Turbo decision |
+| `13ff6a51d` | 2026-10-08 |  | fix(decap): treat boolean contract fields as switches | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `afe532e04` | 2026-10-08 |  | fix(decap): forget the stored token even when revoking it fails | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `3defac893` | 2026-10-08 |  | fix(decap): open the login link on Windows without a shell | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `d85afe14f` | 2026-10-08 |  | fix(decap): revoke the token a new login replaces | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `486c9e99c` | 2026-10-08 |  | fix(decap): fail fast when the instance has no CLI API | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `ae3811319` | 2026-10-08 |  | fix(turbo-gitlab): end a dead session once instead of failing every request | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `562f74a23` | 2026-10-08 |  | docs(core): mark CMS.editor and CMS.registerFieldAction experimental | ask |  | editor API and field actions: pending the Turbo decision |
+| `da86c70c0` | 2026-10-08 |  | docs(decap): fix the README for the npm release | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `9afaf93e6` | 2026-10-08 |  | chore(release): keep latest on the newest beta of beta-only packages | n/a |  | release commit |
+| `c1927b9d1` | 2026-10-08 |  | feat(decap): publish the CLI as @decap/cli | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `e7b981522` | 2026-10-08 |  | chore(release): publish | n/a |  | release commit |
+| `090cb56eb` | 2026-10-08 |  | fix(release): treat a staged upload as done and a tag move as a warning | n/a |  | release tooling |
+| `9860058e2` | 2026-10-12 |  | refactor(core): ship the Deploys page as a plain table | ask |  | Turbo deploy status (save toasts, Deploys page): pending the Turbo decision |
+| `e57639bcd` | 2026-10-12 |  | fix(core): search body only on backends that search it, and other GA fixes | n/a |  | body search and notification signature were Turbo-branch additions; workflow key half is the shortcut; rest tidies Turbo code |
+| `c779d90b1` | 2026-10-12 |  | fix(turbo-github,turbo-gitlab): send site_id on login and drop the GraphQL deep import | done | ec065c035 | notes lookup narrowed by collection label, 20-page cap; the rest is Turbo |
+| `8dcfe3e6d` | 2026-10-12 |  | fix(media-library-s3): encode object keys and surface plan-gate errors | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `9d5c98e78` | 2026-10-12 |  | fix(decap): reject unknown flags, report a busy port, await file moves | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `1ec8351f2` | 2026-10-12 |  | chore(release): prepare the GA graduation | n/a |  | release |
+| `517d0938d` | 2026-10-12 |  | docs: rewrite the Turbo package READMEs for GA | ask |  | Turbo READMEs |
+| `915b0bec8` | 2026-10-12 |  | fix(core): hide create, delete and publish on view-only collections | ask |  | Turbo backend permissions / backend config resolver: pending the Turbo decision |
+| `367b5286a` | 2026-10-12 |  | feat(lib-turbo): share the Turbo backends' session, fetch, cache and login code | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `9bbd32bea` | 2026-10-12 |  | refactor: keep only the comments that say why | n/a |  | comment-only cleanup |
+| `981c4d83c` | 2026-10-12 |  | ci(publish): let a dispatch exempt hand-bootstrapped packages from provenance | n/a |  | CI |
+| `9632cb051` | 2026-10-12 |  | ci: build the CLI for the proxy e2e specs; skip POSIX modes on Windows | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `cd60ad09d` | 2026-10-12 |  | fix(lib-turbo): parse Server-Timing durations without backtracking | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `772a44ce8` | 2026-10-12 |  | ci: build the CLI's workspace dependencies before the CLI | n/a |  | CI |
+| `606008240` | 2026-10-12 |  | chore(release): publish | n/a |  | release commit |
+| `11be0474e` | 2026-10-13 |  | ci(smoke): install the entries' workspace peers from their tarballs | n/a |  | CI |
+| `d72113caf` | 2026-10-13 |  | chore(release): publish | n/a |  | release commit |
+| `9f1191932` | 2026-10-13 |  | fix(lib-turbo): read a proxy refusal lib-util already consumed | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `46cc1546e` | 2026-10-14 |  | chore(release): publish | n/a |  | release commit |
+| `6cad4750d` | 2026-10-14 |  | chore(release): back out the unpublished GA version commit | n/a |  | release commit |
+| `e053e26b8` | 2026-10-14 |  | ci(smoke): install workspace peers from the whole dependency tree | n/a |  | CI |
+| `58dec6fdb` | 2026-10-14 |  | chore(release): publish | n/a |  | release commit |
+| `65ed8cd91` | 2026-10-14 |  | chore(scripts): remove the one-off GA dist-tag script | n/a |  | release script |
+| `e63b0558b` | 2026-10-14 | [#8030](https://github.com/decaporg/decap-cms/pull/8030) | chore(deps): bundle dependabot bumps and refresh vulnerable lockfile entries (#8030) | dep-check |  | see "Dependencies" below |
+| `3d0dab7ca` | 2026-10-14 | [#8031](https://github.com/decaporg/decap-cms/pull/8031) | fix(turbo): explain a Turbo site with no repo instead of blaming config.yml (#8031) | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `f05110384` | 2026-10-14 | [#8032](https://github.com/decaporg/decap-cms/pull/8032) | perf: drop duplicate and unused code from the decap-cms bundle (#8032) | n/a |  | webpack/lodash/immutable bundle dedupe; v4 is vite + lodash-es, no immutable |
+| `9d1bb3beb` | 2026-10-14 |  | chore(release): publish | n/a |  | release commit |
+| `c194172af` | 2026-10-23 | [#8014](https://github.com/decaporg/decap-cms/pull/8014) | fix(markdown): store pasted image url in node data (#8014) | n/a |  | Slate markdown widget; v4 richtext paste already stores the url in node data (checked) |
+| `3d0f6550b` | 2026-10-23 | [#7989](https://github.com/decaporg/decap-cms/pull/7989) | fix(core): preserve full entries returned by preSave handlers (#7989) | done | d23b9b8e8 |  |
+| `295904e55` | 2026-10-23 | [#8002](https://github.com/decaporg/decap-cms/pull/8002) | fix(datetime): preserve year while typing (#8002) | done | 07dec4258 |  |
+| `65df768cf` | 2026-10-23 | [#7988](https://github.com/decaporg/decap-cms/pull/7988) | fix(widget-list): restore controls for erroneous typed items (#7988) | done | 845a40ba4 |  |
+| `cf8098020` | 2026-10-23 | [#8006](https://github.com/decaporg/decap-cms/pull/8006) | fix(relation): match filters against multiple-value fields (#8006) | done | a765f6f47 |  |
+| `9155f271e` | 2026-10-23 | [#8000](https://github.com/decaporg/decap-cms/pull/8000) | fix: place slug collision suffix before collection path (#8000) | done | 373b2854e | v4 keeps its key-based handling of `{{slug}}` in a path, so a filtered slug is not re-sanitized |
+| `307155155` | 2026-10-23 | [#8007](https://github.com/decaporg/decap-cms/pull/8007) | fix(core): allow uppercase characters in nested collection meta path (#8007) | done | c376dfff3 |  |
+| `3eb440119` | 2026-10-23 | [#8034](https://github.com/decaporg/decap-cms/pull/8034) | fix(core): add min and max to relation field types (#8034) | n/a |  | v4 relation field type already has min/max |
+| `70d8e2560` | 2026-10-23 | [#8043](https://github.com/decaporg/decap-cms/pull/8043) | fix: several small issues (#8043) | done | 4eb4fe12f | auth origin, Cloudinary folder, richtext default mode, legacy /edit route; ensureRoot already v4 (DCMS-1896); dropdown widths and dep removals n/a |
+| `b759e3b85` | 2026-10-23 | [#7991](https://github.com/decaporg/decap-cms/pull/7991) | fix(gitlab): include merge request SHA when publishing (#7991) | done | 7bad59dd8 |  |
+| `141b36007` | 2026-10-23 | [#8039](https://github.com/decaporg/decap-cms/pull/8039) | fix(github): list deep trees with REST when using GraphQL (#8039) | done | 06863cf77 |  |
+| `7fbecd60b` | 2026-10-23 | [#8038](https://github.com/decaporg/decap-cms/pull/8038) | fix(azure): set login for the authenticated user (#8038) | done | 037458372 |  |
+| `c84cb571f` | 2026-10-23 | [#8013](https://github.com/decaporg/decap-cms/pull/8013) | fix(forgejo): use existing fork when it has a different name (#8013) | n/a |  | v4 Forgejo backend has no open authoring / fork support |
+| `e92641821` | 2026-10-23 | [#8033](https://github.com/decaporg/decap-cms/pull/8033) | fix(backend-bitbucket): load all pages of pull requests (#8033) | done | 050d10fea | uses lib-util createSemaphore (no semaphore dependency on v4) |
+| `b2ffd2dac` | 2026-10-23 | [#8044](https://github.com/decaporg/decap-cms/pull/8044) | docs(git-gateway): fix bitbucket backend link typo (#8044) | n/a |  | typo not present in the v4 README |
+| `a5215ccfa` | 2026-10-23 | [#8041](https://github.com/decaporg/decap-cms/pull/8041) | feat(media-library-s3): list Neon Object Storage as a supported provider (#8041) | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `4ca83fcde` | 2026-10-23 |  | test(gitlab): expect the merge request sha in recorded publish requests | done | 7bad59dd8 | fixtures updated with the #7991 port |
+| `fcd925dab` | 2026-10-23 |  | refactor: simplify the slug suffix loop and the Forgejo fork lookup | done | 373b2854e | slug half folded into the #8000 port; Forgejo half n/a (v4 Forgejo has no open authoring) |
+| `a7ba3db14` | 2026-10-26 | [#8046](https://github.com/decaporg/decap-cms/pull/8046) | chore(deps): override vulnerable transitive dependencies (#8046) | dep-check |  | see "Dependencies" below |
+| `9324b482b` | 2026-10-23 |  | fix(decap): keep the dev proxy local and out of .git | done | dbb7e88a0 | ported into src/dev-server; ORIGIN now defaults to localhost; --host flag n/a |
+| `a2b0ae153` | 2026-10-23 |  | fix(core): never evaluate JavaScript front matter | n/a |  | v4 frontmatter codec has no JavaScript engine (no gray-matter, no eval) |
+| `4b5ac2955` | 2026-10-26 |  | fix(decap): check for .git path segments in linear time | done | dbb7e88a0 | folded into the 9324b482b port |
+| `7e817a62c` | 2026-10-26 |  | chore(release): publish | n/a |  | release commit |
+| `9e1e68aef` | 2026-10-26 |  | fix(widget-file): download unsaved media instead of opening it | done | eb43f0e1f |  |
+| `15422654d` | 2026-10-26 | [#8051](https://github.com/decaporg/decap-cms/pull/8051) | chore(deps): refresh newly flagged lockfile entries (#8051) | dep-check |  | see "Dependencies" below |
+| `b34587cd7` | 2026-10-26 | [#8017](https://github.com/decaporg/decap-cms/pull/8017) | fix(widget-code): size markdown code blocks to their content (#8017) | done | 23362f7fb |  |
+| `653c1a6fb` | 2026-10-26 |  | chore(media-library-s3): describe providers generically | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `2c7ba9628` | 2026-10-26 |  | chore(release): publish | n/a |  | release commit |
+| `987e8faec` | 2026-10-28 |  | fix(turbo): say why the Turbo config request failed instead of "Failed to fetch" | ask |  | Decap Turbo (turbo backends, lib-turbo, S3 media library, `decap` CLI): pending the Turbo decision |
+| `61ceb6e06` | 2026-10-28 |  | ci(release): wait for lagging provenance before failing the publish | n/a |  | release tooling |
