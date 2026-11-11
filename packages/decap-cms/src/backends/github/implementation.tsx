@@ -645,7 +645,7 @@ export default class GitHub implements BackendImplementation {
   }
 
   // Fetches a single entry.
-  getEntry(path: string) {
+  getEntry(path: string): Promise<BackendEntry> {
     const repoURL = this.api!.originRepoURL;
     return this.api!.readFile(path, null, { repoURL })
       .then(data => ({

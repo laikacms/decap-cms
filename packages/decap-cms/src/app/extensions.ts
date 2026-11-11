@@ -18,6 +18,7 @@ import { GitLabBackend } from '@/backends/gitlab/index';
 import { LocalFsBackend } from '@/backends/local-fs/index';
 import { ProxyBackend } from '@/backends/proxy/index';
 import { TestBackend } from '@/backends/test/index';
+import { DecapTurboGitHubBackend } from '@/backends/turbo-github/index';
 // Widgets
 import DecapCmsWidgetBoolean from '@/widgets/boolean/index';
 import DecapCmsWidgetCode from '@/widgets/code/index';
@@ -57,6 +58,7 @@ export const registerExtensions = once(function registerExtensions(): void {
   CMS.registerBackend('test-repo', TestBackend);
   CMS.registerBackend('proxy', ProxyBackend);
   CMS.registerBackend('local-fs', LocalFsBackend);
+  CMS.registerBackend('turbo-github', DecapTurboGitHubBackend);
   [
     DecapCmsWidgetString.Widget(),
     DecapCmsWidgetNumber.Widget(),
