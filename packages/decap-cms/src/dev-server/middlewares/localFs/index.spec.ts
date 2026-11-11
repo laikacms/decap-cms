@@ -1,8 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getSchema } from '.';
+import { move } from '@/dev-server/middlewares/utils/fs';
+import { getSchema, localFsMiddleware } from '.';
 
+import type { DevServerRequest, DevServerResponse } from '@/dev-server/app';
+import type * as FsUtils from '@/dev-server/middlewares/utils/fs';
 import type { ValidationResult } from '@/dev-server/middlewares/validation';
+
+vi.mock('@/dev-server/middlewares/utils/fs', async importOriginal => ({
+  ...(await importOriginal<typeof FsUtils>()),
+  writeFile: vi.fn().mockResolvedValue(undefined),
+  move: vi.fn(),
+}));
 
 function assetFailure(result: ValidationResult, expectedMessage: string) {
   const { error } = result;
@@ -88,6 +97,38 @@ describe('localFsMiddleware', () => {
       });
 
       expect(error).toBeUndefined();
+    });
+  });
+
+  describe('persistEntry with a rename', () => {
+    it('awaits the move before responding, so the response implies the rename is done', async () => {
+      const order: string[] = [];
+      vi.mocked(move).mockImplementation(async () => {
+        order.push('move-start');
+        await new Promise(resolve => setTimeout(resolve, 0));
+        order.push('move-end');
+      });
+      const noop = () => {};
+      const logger = { log: noop, info: noop, error: noop, warn: noop, debug: noop };
+      const middleware = localFsMiddleware({ repoPath: '/repo', logger });
+      const req = {
+        body: {
+          action: 'persistEntry',
+          params: {
+            entry: { slug: 'a', path: 'a.md', raw: 'x', newPath: 'b.md' },
+            assets: [],
+            options: {},
+          },
+        },
+      } as unknown as DevServerRequest;
+      const res = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(() => order.push('json')),
+      } as unknown as DevServerResponse;
+
+      await middleware(req, res);
+
+      expect(order).toEqual(['move-start', 'move-end', 'json']);
     });
   });
 });
