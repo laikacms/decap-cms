@@ -497,6 +497,17 @@ describe('turbo github backend logout', () => {
     expect(backend._currentUserPromise).toBeUndefined();
     expect((await backend.status()).auth.status).toBe(false);
   });
+
+  it('stops and drops the deploy watcher', () => {
+    const backend = loggedInBackend();
+    const stop = vi.fn();
+    backend.deployWatcherInstance = { stop } as any;
+
+    backend.logout();
+
+    expect(stop).toHaveBeenCalledTimes(1);
+    expect(backend.deployWatcherInstance).toBeNull();
+  });
 });
 
 describe('turbo github backend user identity', () => {
@@ -573,5 +584,259 @@ describe('turbo github backend notes', () => {
       expect.objectContaining({ id: '99', author: 'Decap Tester', authorId: USER_ID }),
     );
     expect(note.avatarUrl).toBeUndefined();
+  });
+});
+
+// Which commit the save toast watches, and when there is nothing to watch.
+describe('turbo github backend deploy watch', () => {
+  const superPersistEntry = Object.getPrototypeOf(DecapTurboGitHubBackend.prototype);
+
+  const entry = {
+    dataFiles: [{ slug: 'post', path: 'content/post.md', raw: 'hello' }],
+    assets: [],
+  };
+
+  function makeBackend() {
+    // `branch` is load-bearing here: only a commit on the site's own branch can
+    // produce a deploy the editor is waiting for.
+    const backend = new DecapTurboGitHubBackend({
+      ...config,
+      backend: { ...config.backend, branch: 'main' },
+    });
+    backend.baseUrl = 'https://sb.example.com';
+    backend.session.accessToken = 'access-token';
+    backend.siteId = 'site-id';
+    return backend;
+  }
+
+  function deploymentRow(state) {
+    return {
+      commit_sha: 'sha-1',
+      source: 'github_deployment',
+      external_id: '42',
+      provider_label: 'Netlify',
+      state,
+      target_url: 'https://site.example',
+      error_message: null,
+      started_at: '2026-09-02T10:00:00Z',
+      finished_at: '2026-09-02T10:01:00Z',
+      updated_at: '2026-09-02T10:01:00Z',
+    };
+  }
+
+  async function flush() {
+    for (let tick = 0; tick < 5; tick += 1) {
+      await Promise.resolve();
+    }
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    global.fetch = vi.fn().mockResolvedValue({ ok: true });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('remembers the commit a save produced, and the entry it saved', async () => {
+    vi
+      .spyOn(superPersistEntry, 'persistEntry')
+      .mockResolvedValue({ sha: 'sha-1', branch: 'main', url: 'https://github.example' });
+
+    const backend = makeBackend();
+    await backend.persistEntry(entry, { collectionName: 'posts' });
+
+    expect(backend.lastSavedCommit).toEqual({ sha: 'sha-1', entryPath: 'content/post.md' });
+  });
+
+  // Only the one-call commit endpoint returns a sha. Keeping the previous
+  // one would make a fallback save watch the deploy of the save before it.
+  it('forgets the commit when a save returns no sha', async () => {
+    vi.spyOn(superPersistEntry, 'persistEntry').mockResolvedValue({ sha: 'sha-1' });
+    const backend = makeBackend();
+    await backend.persistEntry(entry, { collectionName: 'posts' });
+
+    vi.spyOn(superPersistEntry, 'persistEntry').mockResolvedValue('post');
+    await backend.persistEntry(entry, { collectionName: 'posts' });
+
+    expect(backend.lastSavedCommit).toBeNull();
+  });
+
+  // An editorial-workflow save commits to the entry's own `cms/...` branch,
+  // and that commit never appears in a deploy of the site's branch : so
+  // watching it would leave the editor waiting on a deploy that is never
+  // coming.
+  it('does not watch a commit made on an editorial-workflow branch', async () => {
+    vi.spyOn(superPersistEntry, 'persistEntry').mockResolvedValue({
+      sha: 'sha-wf',
+      branch: 'cms/posts/post',
+      url: 'https://github.example',
+    });
+
+    const backend = makeBackend();
+    await backend.persistEntry(entry, { collectionName: 'posts', useWorkflow: true });
+
+    expect(backend.lastSavedCommit).toBeNull();
+    expect(backend.recordSaveForDeployWatch('A post')).toBe(false);
+  });
+
+  it('declines to record a save when none has produced a commit', () => {
+    expect(makeBackend().recordSaveForDeployWatch('A post')).toBe(false);
+  });
+
+  it('declines to record when the backend has no Supabase project to read', () => {
+    const backend = makeBackend();
+    backend.baseUrl = undefined;
+    backend.supabaseId = '';
+    backend.lastSavedCommit = { sha: 'sha-1', entryPath: 'content/post.md' };
+
+    expect(backend.recordSaveForDeployWatch('A post')).toBe(false);
+  });
+
+  it('records the save and announces it live when a deploy carries it', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve(JSON.stringify([deploymentRow('success')])),
+    });
+
+    const backend = makeBackend();
+    backend.lastSavedCommit = { sha: 'sha-1', entryPath: 'content/post.md' };
+    const resolutions = [];
+    backend.subscribeDeployResolutions(resolution => resolutions.push(resolution));
+
+    expect(backend.recordSaveForDeployWatch('A post')).toBe(true);
+    await flush();
+
+    const [url, init] = global.fetch.mock.calls[0];
+    expect(url).toContain('https://sb.example.com/rest/v1/site_deployments?');
+    expect(url).toContain('site_id=eq.site-id');
+    expect(url).toContain('branch=eq.');
+    expect(init.headers.Authorization).toBe('Bearer access-token');
+
+    expect(resolutions).toEqual([
+      expect.objectContaining({
+        status: 'live',
+        entries: [{ entryPath: 'content/post.md', entryLabel: 'A post' }],
+        targetUrl: 'https://site.example',
+      }),
+    ]);
+  });
+
+  // Ancestry is asked of git, not of two clocks.
+  it('answers "is my change in this deploy" with GitHub compare', async () => {
+    const backend = makeBackend();
+    backend.ghFetch = vi
+      .fn()
+      .mockResolvedValue({ json: () => Promise.resolve({ status: 'ahead' }) });
+
+    await expect(backend.isCommitContained('mine', 'theirs')).resolves.toBe(true);
+    expect(backend.ghFetch.mock.calls[0][0]).toContain('/compare/mine...theirs');
+
+    backend.ghFetch.mockResolvedValue({ json: () => Promise.resolve({ status: 'identical' }) });
+    await expect(backend.isCommitContained('mine', 'mine')).resolves.toBe(true);
+
+    backend.ghFetch.mockResolvedValue({ json: () => Promise.resolve({ status: 'behind' }) });
+    await expect(backend.isCommitContained('mine', 'older')).resolves.toBe(false);
+
+    backend.ghFetch.mockResolvedValue({ json: () => Promise.resolve({ status: 'diverged' }) });
+    await expect(backend.isCommitContained('mine', 'other-branch')).resolves.toBe(false);
+  });
+});
+
+describe('turbo github backend deploy status config', () => {
+  // Core has no idea what a Turbo site is; the branch has to travel with the
+  // options, or the Deploys page cannot tell "Live" from "a branch also built".
+  it('reports the branch the site publishes from', () => {
+    const backend = new DecapTurboGitHubBackend({
+      ...config,
+      backend: { ...config.backend, branch: 'turbo' },
+    });
+
+    expect(backend.deployStatusConfig()).toMatchObject({
+      enabled: true,
+      page: true,
+      branch: 'turbo',
+    });
+  });
+
+  it('reports the default branch when the config names none', () => {
+    expect(new DecapTurboGitHubBackend(config).deployStatusConfig().branch).toBe('master');
+  });
+});
+
+describe('turbo github backend deploy status surfaces', () => {
+  function makeBackend(deployStatus?: unknown) {
+    const backend = new DecapTurboGitHubBackend({
+      ...config,
+      backend: {
+        ...config.backend,
+        branch: 'main',
+        ...(deployStatus === undefined ? {} : { deploy_status: deployStatus }),
+      },
+    } as any);
+    backend.baseUrl = 'https://sb.example.com';
+    backend.session.accessToken = 'access-token';
+    backend.siteId = 'site-id';
+    return backend;
+  }
+
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('links a commit to github.com, the one host this backend serves', () => {
+    expect(makeBackend().commitUrl('abc')).toBe('https://github.com/owner/repo/commit/abc');
+    expect(makeBackend().commitUrl('')).toBeNull();
+  });
+
+  // `deploy_status: false` must make the backend look like one without the feature.
+  it('offers nothing when deploy_status is false', async () => {
+    global.fetch = vi.fn() as any;
+    const backend = makeBackend(false);
+
+    expect(backend.deployStatusConfig()).toMatchObject({ enabled: false, page: false, notifications: false });
+    expect(backend.subscribeDeployStatus(() => {})).toBeNull();
+    expect(backend.subscribeDeployResolutions(() => {})).toBeNull();
+    await expect(backend.listDeployments()).resolves.toEqual([]);
+    await expect(backend.listCommits()).resolves.toEqual([]);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('turns the notifications off alone and keeps the page', () => {
+    const backend = makeBackend({ notifications: false });
+
+    expect(backend.subscribeDeployResolutions(() => {})).toBeNull();
+    expect(backend.deployStatusConfig()).toMatchObject({ enabled: true, page: true });
+  });
+
+  // The indicator's channel: subscribing reports the current state and polls nothing.
+  it('reports status without reading anything', () => {
+    global.fetch = vi.fn() as any;
+    const statuses: unknown[] = [];
+
+    makeBackend().subscribeDeployStatus(status => statuses.push(status));
+
+    expect(statuses).toEqual([{ pendingCount: 0, latest: null }]);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('reads deploys and saves from PostgREST with the session token', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, text: () => Promise.resolve('[]') }) as any;
+    const backend = makeBackend();
+
+    await backend.listDeployments();
+    await backend.listCommits();
+
+    const urls = (global.fetch as any).mock.calls.map(([url]: [string]) => url);
+    expect(urls[0]).toContain('https://sb.example.com/rest/v1/site_deployments?');
+    expect(urls[0]).not.toContain('branch=eq.');
+    expect(urls[1]).toContain('https://sb.example.com/rest/v1/site_commits?');
+    expect((global.fetch as any).mock.calls[0][1].headers.Authorization).toBe('Bearer access-token');
   });
 });

@@ -35,18 +35,18 @@ backend:
 `config.yml` win, with one exception: `repo` always comes from the site in Turbo, because the proxy
 checks permissions against it.
 
-| Optional key    |                                                                                                                       |
-| --------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `branch`        | Branch to edit. Defaults to the site's branch in Turbo. Set it to let one site back several deploys of the same repo. |
-| `editor_bridge` | `true` turns on the experimental [editor bridge](#editor-bridge). Off by default.                                     |
+| Optional key    |                                                                                                                                                 |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `branch`        | Branch to edit. Defaults to the site's branch in Turbo. Set it to let one site back several deploys of the same repo.                           |
+| `deploy_status` | `false` turns [deploy status](#deploy-status) off; an object with `notifications: false` or `page: false` turns one surface off. On by default. |
+| `editor_bridge` | `true` turns on the experimental [editor bridge](#editor-bridge). Off by default.                                                               |
 
 `use_graphql: true` is not supported and throws in the constructor: the GraphQL client builds its
 own transport, which would skip the per-site scoping (`x-site-id` header and `site_id` parameter)
 the proxy relies on. `open_authoring: true` throws too: Turbo commits as the organization's GitHub
 App, which cannot fork or commit to an editor's own repository.
 
-Not ported to this repo: upstream's deploy status (`deploy_status`, the Deploys page and the save
-toast that follows a deploy) and its S3 media library.
+Not ported to this repo: upstream's S3 media library.
 
 ### Escape hatches
 
@@ -58,7 +58,7 @@ them.
 | `turbo_config_url`                     | Config endpoint to fetch from, instead of `https://sb.decapcms.org/functions/v1/config`.                                                                                                                                                                   |
 | `turbo_admin_url`                      | Turbo app that serves the login popup. Default `https://turbo.decapcms.org`.                                                                                                                                                                               |
 | `supabase_app_id`, `supabase_anon_key` | Supabase project ref and anon key. The ref builds the auth and content cache URLs (`https://<ref>.supabase.co`). Setting both skips the fetch entirely, so `base_url`, `api_root` and `repo` must then be set too. Setting `supabase_app_id` alone throws. |
-| `base_url`                             | Supabase project URL, for the `permissions` and `telemetry` functions and the editor bridge.                                                                                                                                                               |
+| `base_url`                             | Supabase project URL, for the `permissions` and `telemetry` functions, deploy status and the editor bridge.                                                                                                                                                |
 | `api_root`                             | The `gh` proxy function, `<base_url>/functions/v1/gh`.                                                                                                                                                                                                     |
 
 ## How it works
@@ -126,6 +126,33 @@ Nothing is sent without a session. The call is not awaited and swallows its own 
 affect editing. Editors opt out of analytics on their Turbo profile, owners for the whole
 organization in its settings. Opting out is applied server-side; the save event that feeds the
 organization's Activity log is still recorded.
+
+### Deploy status
+
+The backend implements core's optional deploy-status methods (`src/lib/backend/deployStatus.ts`),
+which light up the "Saved · Publishing…" toast, the "your change is live" notification, the header's
+Deploys item and the `/deploys` page. All of it reads Turbo's `site_deployments` and `site_commits`
+tables through PostgREST (`<base_url>/rest/v1/...`) with the editor's access token and the site id;
+nothing is read without a session.
+
+- **After a save** to the site's branch, the commit sha goes into a per-site ledger in
+  `localStorage` (`decap-turbo:deploys:<site id>`), so a reload resumes it. While the ledger is
+  non-empty the backend polls `site_deployments` for the site's branch, newest 20 rows updated since
+  the oldest pending save: every 5s for the first minute, every 15s to three minutes, then every
+  30s. A success whose commit is not the saved one is checked with GitHub's compare API (through the
+  proxy) to see whether it contains the save. A save resolves when a deploy containing it succeeds;
+  a failure is reported but kept, so a fixed build still announces the change live. Polling stops
+  when the ledger empties, after two minutes with no deploy row at all (no deploy hook reports for
+  this site), after five consecutive failed reads, and when nobody is subscribed. A save is
+  forgotten 20 minutes after it was made. Editorial-workflow saves land on a `cms/...` branch and
+  are not watched.
+- **On login** core makes one read of the newest 200 deploys (all branches) and commits, for the
+  header item.
+- **The Deploys page** reads the same again when opened, on Refresh, and every 10s while it is open
+  in a visible tab.
+
+The commit request also carries the entry's title and path (`entry_label`, `entry_path`), so the
+page can name the entry a deploy carried for every editor.
 
 ### Editor bridge
 

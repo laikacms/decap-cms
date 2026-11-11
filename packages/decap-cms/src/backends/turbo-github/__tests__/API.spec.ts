@@ -69,6 +69,22 @@ describe('TurboAPI.persistFiles', () => {
     expect('asset' in JSON.parse(init.body).additions[0]).toBe(false);
   });
 
+  // Descriptive only: the Deploys page names a commit by the entry it saved.
+  it('sends the entry label and path core passes with the save', async () => {
+    const turboFetch = committed();
+
+    await makeApi(turboFetch).persistFiles(
+      [dataFile] as any,
+      [] as any,
+      { ...options, entryLabel: 'Hello', entryPath: 'content/posts/hello.md' } as any,
+    );
+
+    expect(JSON.parse(turboFetch.mock.calls[0][1].body)).toMatchObject({
+      entry_label: 'Hello',
+      entry_path: 'content/posts/hello.md',
+    });
+  });
+
   it("uses an asset proxy's own toBase64 rather than re-encoding raw", async () => {
     const turboFetch = committed();
     const asset = { path: '/static/img/a.png', toBase64: vi.fn().mockResolvedValue('QUJD') };

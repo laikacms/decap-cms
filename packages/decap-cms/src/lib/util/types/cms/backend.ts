@@ -66,6 +66,14 @@ export interface CmsBackend {
    * agents setting fields in the open entry). Off by default.
    */
   editor_bridge?: boolean;
+  /**
+   * Decap Turbo: deploy status (the "your change is live" notifications and
+   * the Deploys page). On by default; `false` turns it off, an object turns
+   * parts off or names the host whose success counts as live.
+   */
+  deploy_status?:
+    | boolean
+    | { enabled?: boolean, notifications?: boolean, page?: boolean, primary_target?: string };
   /** Decap Turbo: the commit author email when the signed-in editor has none. */
   commit_author_email?: string;
   /** Decap Turbo: older spelling of `commit_author_email`. */
@@ -172,6 +180,7 @@ export type CmsBackendInitConfig = {
     supabase_app_id?: string,
     supabase_anon_key?: string,
     editor_bridge?: boolean,
+    deploy_status?: boolean | { enabled?: boolean, notifications?: boolean, page?: boolean, primary_target?: string },
     commit_author_email?: string,
     noreply_email?: string,
   },

@@ -20,6 +20,12 @@ import {
 } from '@/lib/turbo/index';
 import { generateContentKey, unsentRequest } from '@/lib/util/index';
 import TurboAPI from './API';
+import {
+  createCommitLister,
+  createDeploymentLister,
+  createDeployWatcher,
+  parseDeployStatusOptions,
+} from './deployWatcher';
 
 import type { GitHubUser } from '@/backends/github/index';
 import type { BackendEntry, BackendFileRef, Note, PersistPayload } from '@/lib/backend/index';
@@ -33,6 +39,16 @@ import type {
   TelemetryTarget,
 } from '@/lib/turbo/index';
 import type { CmsConfig, CmsCredentials, CmsPersistOptions, CmsUser } from '@/lib/util/index';
+import type {
+  CommitRow,
+  DeploymentFetcherConfig,
+  DeploymentRow,
+  DeployResolution,
+  DeployStatusConfig,
+  DeployStatusOptions,
+  DeployWatcher,
+  WatchStatus,
+} from './deployWatcher';
 
 const PROXY_MARKER = '/functions/v1/gh';
 
@@ -67,6 +83,18 @@ export default class DecapTurboGitHubBackend extends GitHubBackend {
   editorBridgeEnabled = false;
   editorBridgeInstance: EditorBridge | null = null;
 
+  /** Lazily built: most sessions never save, and many sites have no deploy hook. */
+  deployWatcherInstance: DeployWatcher | null = null;
+
+  /**
+   * Core ignores `persistEntry`'s return value, so the sha the deploy ledger
+   * keys on is captured here. Null after a save that produced no sha.
+   */
+  lastSavedCommit: { sha: string, entryPath?: string | undefined } | null = null;
+
+  /** Whether editors see deploy status at all, and which host counts. */
+  deployStatusOptions: DeployStatusOptions = parseDeployStatusOptions(undefined);
+
   constructor(config: CmsConfig, options: Record<string, any> = {}) {
     super(config, options);
 
@@ -92,6 +120,7 @@ export default class DecapTurboGitHubBackend extends GitHubBackend {
     // Opt-in while in development: it uploads every editor's unsaved draft to
     // Turbo every few seconds, whether or not an agent is connected.
     this.editorBridgeEnabled = backend.editor_bridge === true;
+    this.deployStatusOptions = parseDeployStatusOptions(backend.deploy_status);
     this.commitAuthorEmailFallback = backend.commit_author_email || backend.noreply_email;
 
     this.bypassWriteAccessCheckForAppTokens = true;
@@ -249,10 +278,14 @@ export default class DecapTurboGitHubBackend extends GitHubBackend {
     };
   }
 
-  /** GitHubBackend.logout knows nothing about the Turbo session or the bridge. */
+  /** GitHubBackend.logout knows nothing about the Turbo session, bridge or deploy watcher. */
   logout() {
     this.session.clear();
     this.editorBridgeInstance?.stop();
+    if (this.deployWatcherInstance) {
+      this.deployWatcherInstance.stop();
+      this.deployWatcherInstance = null;
+    }
     return super.logout();
   }
 
@@ -427,6 +460,15 @@ export default class DecapTurboGitHubBackend extends GitHubBackend {
     const save = await meterSave(this, () => super.persistEntry(entry, options));
     const { result } = save;
 
+    // Assigned on every save, null included, so a fallback save cannot watch
+    // the previous save's deploy; and only on the site's branch, because a
+    // `cms/...` workflow commit never deploys as the site.
+    const sha = (result as { sha?: unknown } | undefined)?.sha;
+    const committedBranch = (result as { branch?: unknown } | undefined)?.branch;
+    this.lastSavedCommit = typeof sha === 'string' && sha && committedBranch === this.branch
+      ? { sha, entryPath: entry.dataFiles?.[0]?.path }
+      : null;
+
     // The API client owns the content key format.
     const branch = savedBranch(
       result,
@@ -438,5 +480,130 @@ export default class DecapTurboGitHubBackend extends GitHubBackend {
     );
     recordSaveEvent(this.telemetryTarget(), entry, options, { ...save, branch });
     return result;
+  }
+
+  /**
+   * Whether `head` contains `base`: "is my change in this deploy?", asked of
+   * git rather than of two clocks.
+   */
+  private async isCommitContained(base: string, head: string) {
+    const response = await this.ghFetch(
+      `${this.apiRoot}/repos/${this.originRepo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(head)}`,
+    );
+    const comparison = (await response.json()) as { status?: string };
+    return comparison.status === 'ahead' || comparison.status === 'identical';
+  }
+
+  /** Where deployments are read from, or null without a Supabase project or site id. */
+  private deploymentSource(): DeploymentFetcherConfig | null {
+    const baseUrl = this.baseUrl || (this.supabaseId && `https://${this.supabaseId}.supabase.co`);
+    if (!baseUrl || !this.siteId || !this.supabaseAnonKey) {
+      return null;
+    }
+    return {
+      baseUrl,
+      anonKey: this.supabaseAnonKey,
+      siteId: this.siteId,
+      branch: this.branch,
+      // Read per request: a watch outlives several session refreshes.
+      getAccessToken: () => this.session.accessToken,
+    };
+  }
+
+  /** One ledger of this editor's unpublished saves for the session, or null when deployments cannot be read. */
+  private deployWatcher(): DeployWatcher | null {
+    const source = this.deploymentSource();
+    if (!source) {
+      return null;
+    }
+
+    if (!this.deployWatcherInstance) {
+      this.deployWatcherInstance = createDeployWatcher({
+        ...source,
+        isCommitContained: (base, head) => this.isCommitContained(base, head),
+      });
+    }
+
+    return this.deployWatcherInstance;
+  }
+
+  /**
+   * Subscribes to "this change is live / this build failed" for the session,
+   * resuming any ledger left from a previous load. Null: none will ever arrive.
+   */
+  subscribeDeployResolutions(listener: (resolution: DeployResolution) => void): (() => void) | null {
+    if (!this.deployStatusOptions.notifications) {
+      return null;
+    }
+    return this.deployWatcher()?.subscribe(listener) ?? null;
+  }
+
+  /** What the header indicator renders. Never starts a poll. */
+  subscribeDeployStatus(listener: (status: WatchStatus) => void): (() => void) | null {
+    if (!this.deployStatusOptions.enabled) {
+      return null;
+    }
+    return this.deployWatcher()?.subscribeStatus(listener) ?? null;
+  }
+
+  deployStatusConfig(): DeployStatusConfig {
+    // The branch lets core scope "Live" without knowing about Turbo.
+    return { ...this.deployStatusOptions, branch: this.branch ?? null };
+  }
+
+  /**
+   * The site's recent deploys, for the Deploys page and the read on startup.
+   * Also handed to the watcher, so the indicator and the page cannot disagree.
+   */
+  async listDeployments(limit?: number): Promise<DeploymentRow[]> {
+    const source = this.deploymentSource();
+    if (!this.deployStatusOptions.enabled || !source) {
+      return [];
+    }
+
+    const rows = await createDeploymentLister(source)(limit);
+    this.deployWatcher()?.observe(rows);
+    return rows;
+  }
+
+  /**
+   * Recent CMS saves, so the Deploys page can name the entry a deploy carried
+   * instead of showing a bare sha. Shared across editors and devices, unlike
+   * the watcher's ledger.
+   */
+  async listCommits(limit?: number): Promise<CommitRow[]> {
+    const source = this.deploymentSource();
+    if (!this.deployStatusOptions.enabled || !source) {
+      return [];
+    }
+
+    return createCommitLister(source)(limit);
+  }
+
+  /**
+   * Records the save just made, so the deploy that carries it can be reported.
+   * False (no sha, or no deployments to read) leaves the plain "Entry saved".
+   */
+  recordSaveForDeployWatch(entryLabel?: string, entryUrlPath?: string): boolean {
+    const saved = this.lastSavedCommit;
+    const watcher = this.deployWatcher();
+
+    if (!saved || !saved.entryPath || !watcher) {
+      return false;
+    }
+
+    watcher.record({ entryPath: saved.entryPath, entryLabel, entryUrlPath, commitSha: saved.sha });
+    return true;
+  }
+
+  /**
+   * Where a human can read a commit. `apiRoot` is Turbo's proxy, and this
+   * backend is github.com-only, so the host is fixed.
+   */
+  commitUrl(sha: string): string | null {
+    if (!sha || !this.originRepo) {
+      return null;
+    }
+    return `https://github.com/${this.originRepo}/commit/${sha}`;
   }
 }

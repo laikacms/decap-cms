@@ -179,6 +179,10 @@ export default class TurboAPI extends API {
         }),
         message: options.commitMessage,
         additions,
+        // Descriptive only: what the Deploys page shows in place of a bare
+        // sha, for every editor rather than only the browser that saved.
+        entry_label: options.entryLabel,
+        entry_path: options.entryPath,
       });
 
       // The commit has landed by this point. If the pull request or the label
