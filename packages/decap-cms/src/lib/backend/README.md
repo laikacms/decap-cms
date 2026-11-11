@@ -78,6 +78,24 @@ is written out rather than imported; returning a real component satisfies it.
 file-backed backend that builds its listings with them gets the seam shape for free and only has to
 convert its own `getEntry`.
 
+## Deploy status (optional)
+
+A backend that knows when a commit is live on the site can implement the optional methods in
+`DeployStatusImplementation` (`deployStatus.ts`); core duck-types each one, so a backend that
+defines none of them keeps the plain "Entry saved" toast and shows no Deploys page or header item.
+
+| Method                                                 | Used for                                                                                              |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `recordSaveForDeployWatch(entryLabel?, entryUrlPath?)` | Called after each save. `true` means a deploy will be reported: the toast says "Saved · Publishing…". |
+| `subscribeDeployResolutions(listener)`                 | `{ status: 'live' \| 'failed', entries, targetUrl }` events, shown as a notification.                 |
+| `subscribeDeployStatus(listener)`                      | `{ pendingCount, latest }` for the header item. Must never start a poll by itself.                    |
+| `listDeployments()`, `listCommits()`                   | The Deploys page's history, newest first, and which entry each commit saved.                          |
+| `deployStatusConfig()`                                 | Which surfaces are on, and the site's branch, so a branch preview is not called the live site.        |
+| `commitUrl(sha)`                                       | A link for each commit on the Deploys page.                                                           |
+
+Core also passes `entryLabel` and `entryPath` in the persist options, for a backend that records
+them against the commit.
+
 ## Helpers
 
 Re-exported from `lib/util` so implementations have one import: entry/media listing

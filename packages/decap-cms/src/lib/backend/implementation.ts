@@ -13,6 +13,7 @@ import type {
   CmsPersistOptions,
   CmsUser,
 } from '@/lib/util/index';
+import type { DeployStatusImplementation } from './deployStatus';
 import type { BackendEntry, BackendFileRef, UnpublishedEntry } from './entry';
 import type { Note, NotesWatchCallbacks } from './notes';
 import type { Asset, MediaFile, PersistPayload } from './persist';
@@ -32,9 +33,10 @@ export type AuthComponent = ((props: any) => any) | (new(props: any) => any);
  * contract there is: entries cross the seam as {@link BackendEntry} with a
  * tagged `content` union, authorship is a structured `Author`, display labels
  * come from collection config rather than the backend, and the persist
- * payload is {@link PersistPayload}.
+ * payload is {@link PersistPayload}. The optional deploy-status methods are
+ * described with {@link DeployStatusImplementation}.
  */
-export interface BackendImplementation {
+export interface BackendImplementation extends DeployStatusImplementation {
   authComponent: () => AuthComponent;
   restoreUser: (user: CmsUser) => Promise<CmsUser>;
 

@@ -174,8 +174,7 @@ export function getSlugFormatter(
     `{{ *(?:slug|${escapeRegExp(identifierField)}) *(?:\\|[^}]*)?}}`,
     'gi',
   );
-  const processPathSegment = (value: string, key: string) =>
-    key === 'slug' ? value : processSegment(value, key);
+  const processPathSegment = (value: string, key: string) => key === 'slug' ? value : processSegment(value, key);
 
   return (suffix = '') => {
     const suffixedTemplate = pathTemplate.replace(slugVariablePattern, match => `${match}${suffix}`);
@@ -447,4 +446,37 @@ export function assetFilenameFormatter(
   } while (usesIndex && existing.has(resolved.toLowerCase()) && index < 10000);
 
   return resolved;
+}
+
+/**
+ * Where an entry will live on the built site, as a path (`/blog/my-post/`), so
+ * whichever deploy carries the change can supply its own host. Undefined
+ * without a `preview_path`, rather than a site-root link posing as the entry.
+ */
+export function entryPreviewPath(
+  collection: Collection,
+  slug: string,
+  entry: EntryMap,
+  slugConfig?: CmsSlug,
+): string | undefined {
+  // A base that cannot be confused for a real one, since only the path is kept.
+  const SENTINEL = 'https://entry-preview-path.invalid';
+
+  try {
+    const url = previewUrlFormatter(SENTINEL, collection, slug, entry, slugConfig);
+    if (!url) {
+      return undefined;
+    }
+    // Compared as parsed origins, not a string prefix: `${SENTINEL}.example.com`
+    // would pass startsWith while naming another host.
+    const parsed = new URL(url);
+    if (parsed.origin !== new URL(SENTINEL).origin) {
+      return undefined;
+    }
+    const path = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    return path && path !== '/' ? path : undefined;
+  } catch {
+    // A malformed template must not cost the editor their save notification.
+    return undefined;
+  }
 }

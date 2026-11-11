@@ -13,6 +13,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   assetFilenameFormatter,
   commitMessageFormatter,
+  entryPreviewPath,
   folderFormatter,
   getProcessSegment,
   getSlugFormatter,
@@ -792,6 +793,45 @@ describe('formatters', () => {
           slugConfig,
         ),
       ).toBe('https://www.example.com/archive/guides-setup');
+    });
+  });
+
+  describe('entryPreviewPath', () => {
+    // Feeds the "your change is live" notification's link, so it can point at
+    // the entry rather than the site's home page (see actions/deployStatus).
+    it('returns only the path, never the sentinel base', () => {
+      const date = new Date('2020-01-02T13:28:27.679Z');
+      const path = entryPreviewPath(
+        { preview_path: '{{year}}/{{slug}}', preview_path_date_field: 'customDateField' } as any,
+        'backendSlug',
+        { data: { customDateField: date, slug: 'entrySlug', title: 'title' } } as any,
+        slugConfig as any,
+      );
+
+      expect(path).toBe('/2020/backendslug');
+      expect(path).not.toContain('invalid');
+      expect(path).not.toContain('https://');
+    });
+
+    // Without a preview_path the formatter hands back the base unchanged, and
+    // a link to the site root dressed up as a link to the entry is worse than
+    // the plain site link the notification already falls back to.
+    it('returns undefined for a collection with no preview_path', () => {
+      expect(entryPreviewPath({} as any, 'slug', { data: {} } as any, slugConfig as any)).toBeUndefined();
+    });
+
+    it('returns undefined rather than throwing on a template it cannot compile', () => {
+      expect(() =>
+        entryPreviewPath({ preview_path: '{{unknown_field}}' } as any, 'slug', { data: {} } as any, slugConfig as any)
+      ).not.toThrow();
+    });
+
+    // Matched by parsed origin, not by string prefix: previewUrlFormatter joins
+    // base and path with an unconditional `/`, so this stays a path.
+    it('keeps a host-looking template in the path, where it belongs', () => {
+      expect(
+        entryPreviewPath({ preview_path: '.example.com/evil' } as any, 'slug', { data: {} } as any, slugConfig as any),
+      ).toBe('/.example.com/evil');
     });
   });
 

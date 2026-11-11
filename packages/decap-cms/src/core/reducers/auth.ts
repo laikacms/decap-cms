@@ -1,6 +1,7 @@
 import { createAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { refilterConfigForPermissions } from '@/core/actions/config';
+import { resetDeployStatus } from '@/core/actions/deployStatus';
 import { addNotification, clearNotifications } from '@/core/actions/notifications';
 import { currentBackend } from '@/core/backend';
 import { ACCESS_TOKEN_ERROR } from '@/lib/util/index';
@@ -117,6 +118,11 @@ export const logoutUser = createAsyncThunk<void, void, { state: State }>(
   'auth/logoutUser',
   async (_, { dispatch, getState }) => {
     const backend = currentBackend(getState().config);
+    // Before backend.logout(), which discards the backend's deploy watcher:
+    // the deploy subscriptions are module-level, so left set they would make
+    // the next sign-in's subscribe a no-op while still pointing at the
+    // discarded watcher, and a later save would poll with nobody to tell.
+    dispatch(resetDeployStatus());
     await backend.logout();
     queryCore.clear();
     dispatch(clearNotifications());

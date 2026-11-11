@@ -1,9 +1,9 @@
 import { isEqual } from 'lodash-es';
 
-import { currentBackend } from '@/core/backend';
+import { currentBackend, safeEntryLabel } from '@/core/backend';
 import ValidationErrorTypes from '@/core/constants/validationErrorTypes';
 import { getIntegrationProvider } from '@/core/integrations';
-import { getProcessSegment } from '@/core/lib/formatters';
+import { entryPreviewPath, getProcessSegment } from '@/core/lib/formatters';
 import { duplicateDefaultI18nFields, hasI18n, I18N, I18N_FIELD, serializeI18n } from '@/core/lib/i18n';
 import { serializeValues } from '@/core/lib/serializeEntryValues';
 import { findUniqueFieldConflicts } from '@/core/lib/validateUniqueFields';
@@ -31,6 +31,7 @@ import { createEntry } from '@/core/valueObjects/Entry';
 import { Cursor } from '@/lib/util/index';
 import { CmsSortDirection } from '@/lib/util/index';
 import queryCore, { collectionTag, entryTag } from '@/lib/util/queryCore';
+import { notifyEntrySaved } from './deployStatus';
 import { addAssets, getAsset } from './media';
 import { loadMedia, waitForMediaLibraryToLoad } from './mediaLibrary';
 import { addNotification } from './notifications';
@@ -1045,12 +1046,16 @@ export function persistEntry(collection: Collection) {
         usedSlugs,
       })
       .then(async (newSlug: string) => {
+        // "Entry saved", or, on a backend that reports deploys, "Saved,
+        // publishing" followed later by a notification when a deploy carries
+        // the change live (see actions/deployStatus). The title and the
+        // entry's path on the site let that notification name and link the
+        // entry; both are guarded, since the entry is already committed.
         dispatch(
-          addNotification({
-            message: { key: 'ui.toast.entrySaved' },
-            type: 'success',
-            dismissAfter: 4000,
-          }),
+          notifyEntrySaved(
+            safeEntryLabel(collection, serializedEntry),
+            entryPreviewPath(collection, newSlug, serializedEntry, state.config.slug),
+          ),
         );
 
         // Release the editor as soon as the entry is committed: entryPersisted

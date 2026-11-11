@@ -24,8 +24,8 @@ import { resolveFormat } from './formats/formats';
 import { contentExists, entryDataFromContent, legacyRaw } from './lib/backendEntry';
 import {
   commitMessageFormatter,
-  previewUrlFormatter,
   getSlugFormatter,
+  previewUrlFormatter,
   slugByteBudget,
   truncateSlug,
   utf8ByteLength,
@@ -49,6 +49,7 @@ import { sanitizeChar } from './lib/urlHelper';
 import {
   selectAllowDeletion,
   selectAllowNewEntries,
+  selectEntryCollectionTitle,
   selectEntryPath,
   selectEntrySlug,
   selectFieldsComments,
@@ -602,6 +603,19 @@ export function localeSiblingRegex(collection: CmsCollectionState): RegExp | und
   );
 
   return ruleString ? new RegExp(ruleString) : undefined;
+}
+
+/**
+ * The entry's title as the CMS displays it, or undefined. Guarded: it walks
+ * entry data that a preSave handler may have replaced with a shape it does not
+ * expect, and it runs after (or for) a save that must not fail because of it.
+ */
+export function safeEntryLabel(collection: CmsCollectionState, entry: CmsEntry): string | undefined {
+  try {
+    return selectEntryCollectionTitle(collection, entry) || undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 // Discriminates the `collectionEntries` cursor data shape (the only cursor
@@ -1786,6 +1800,12 @@ export class Backend {
       collectionName,
       useWorkflow,
       hasSubfolders,
+      // The entry's title and path, for a backend that records them against
+      // the commit (the Deploys page names a colleague's save by its entry
+      // rather than a bare sha); every other backend ignores them. The commit
+      // message cannot stand in: it carries the slug and is configurable.
+      entryLabel: safeEntryLabel(collection, entryDraft.entry),
+      entryPath: path,
       ...updatedOptions,
     };
 

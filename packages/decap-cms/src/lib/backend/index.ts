@@ -18,6 +18,17 @@ export type { Asset, DataFile, MediaFile, PersistPayload } from './persist';
 
 export type { AuthComponent, BackendClass, BackendImplementation } from './implementation';
 
+// Deploy status: optional methods that light up the Deploys page and live notifications.
+export type {
+  DeployCommit,
+  Deployment,
+  DeployResolution,
+  DeployState,
+  DeployStatusConfig,
+  DeployStatusImplementation,
+  DeployWatchStatus,
+} from './deployStatus';
+
 // Editor notes: the seam types plus the shared comment encoding and polling.
 export type {
   ChangeType,

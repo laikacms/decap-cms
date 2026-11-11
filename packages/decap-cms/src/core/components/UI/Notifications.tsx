@@ -17,14 +17,30 @@ import { toastManager } from '@/ui/toastManager';
  * ShareContentPlugin) render in the same viewport.
  */
 
+type CmsMessage = string | { key: string, details?: unknown, [key: string]: unknown };
+
 interface CmsNotification {
   id: string;
-  message: string | { key: string, details?: string, [key: string]: unknown };
+  message: CmsMessage;
   type: 'success' | 'error' | 'info' | 'warning';
-  dismissAfter?: number;
+  dismissAfter?: number | false | undefined;
+  link?: { url: string, label: CmsMessage } | undefined;
+  spinner?: boolean | undefined;
 }
 
-type IdMap = { [id: string]: string };
+/** Rendered beside the title: an action link and an in-progress spinner. */
+interface ToastData {
+  link?: { url: string, label: string } | undefined;
+  spinner?: boolean | undefined;
+}
+
+/**
+ * Per notification id: the Base UI toast showing it, and the notification as
+ * last rendered. The reducer is immer, which keeps the object of every
+ * notification it did not change, so identity is the change check; comparing
+ * contents would mean serializing `details`, which can hold a cyclic error.
+ */
+type IdMap = { [id: string]: { toastId: string, notification: CmsNotification } };
 
 /** Parity with react-toastify's default `autoClose` (the old container set none). */
 const AUTO_DISMISS_MS = 5000;
@@ -41,6 +57,12 @@ const ACCENTS: Record<string, string> = {
 };
 
 const NEUTRAL_ACCENT = '#757575';
+
+/** `false` holds the toast open (Base UI's `0`); omitted means the default. */
+function timeoutFor(dismissAfter: CmsNotification['dismissAfter']): number {
+  if (dismissAfter === false) return 0;
+  return dismissAfter ?? AUTO_DISMISS_MS;
+}
 
 /**
  * Notification message keys scoped to whatever entry editor raised them
@@ -122,6 +144,33 @@ const titleStyles = css`
   word-break: break-word;
 `;
 
+const linkStyles = css`
+  color: inherit;
+  text-decoration: underline;
+  font-weight: 700;
+  white-space: nowrap;
+`;
+
+const spinnerStyles = css`
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: notif-spin 0.8s linear infinite;
+
+  @keyframes notif-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`;
+
 const closeStyles = css`
   flex-shrink: 0;
   align-self: flex-start;
@@ -169,6 +218,7 @@ function NotificationToast({ toastItem, onDismiss }: NotificationToastProps) {
   const [hovered, setHovered] = React.useState(false);
   const [focused, setFocused] = React.useState(false);
   const interactive = hovered || focused;
+  const data = toastItem.data as ToastData | undefined;
 
   return (
     <Toast.Root
@@ -195,7 +245,25 @@ function NotificationToast({ toastItem, onDismiss }: NotificationToastProps) {
       role={toastItem.priority === 'high' ? undefined : 'status'}
       aria-hidden={false}
     >
-      <Toast.Title css={titleStyles} />
+      {data?.spinner && <span className="notif__spinner" css={spinnerStyles} aria-hidden="true" />}
+      <Toast.Title css={titleStyles}>
+        {toastItem.title}
+        {data?.link && (
+          <>
+            {' '}
+            <a
+              href={data.link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              // Clicking it also closes the toast, like a click anywhere on
+              // it; the link opens in its own tab either way.
+              css={linkStyles}
+            >
+              {data.link.label}
+            </a>
+          </>
+        )}
+      </Toast.Title>
       <Toast.Close
         aria-label={'Close notification'}
         css={closeStyles}
@@ -216,7 +284,7 @@ function NotificationsBridge() {
   const notifications = useAppSelector(
     state => state.notifications.notifications as CmsNotification[],
   );
-  const { toasts, add, close } = Toast.useToastManager();
+  const { toasts, add, close, update } = Toast.useToastManager();
   const idMapRef = useRef<IdMap>({});
   // Mirrors `notifications` for the router-subscribe listener below, which
   // is registered once and must always see the latest list rather than the
@@ -239,16 +307,31 @@ function NotificationsBridge() {
   useEffect(() => {
     const idMap = idMapRef.current;
 
+    function translateMessage(message: CmsMessage) {
+      return typeof message === 'string' ? message : t(message.key, { ...message });
+    }
+
+    function contentOf(notification: CmsNotification) {
+      const data: ToastData = {
+        link: notification.link
+          ? { url: notification.link.url, label: translateMessage(notification.link.label) }
+          : undefined,
+        spinner: notification.spinner,
+      };
+      return {
+        title: translateMessage(notification.message),
+        type: notification.type,
+        timeout: timeoutFor(notification.dismissAfter),
+        priority: notification.type === 'error' ? 'high' as const : 'low' as const,
+        data,
+      };
+    }
+
     notifications
       .filter(notification => !idMap[notification.id])
       .forEach(notification => {
         const toastId = add({
-          title: typeof notification.message === 'string'
-            ? notification.message
-            : t(notification.message.key, { ...notification.message }),
-          type: notification.type,
-          timeout: notification.dismissAfter ?? AUTO_DISMISS_MS,
-          priority: notification.type === 'error' ? 'high' : 'low',
+          ...contentOf(notification),
           onClose: () => {
             // Fires when the user dismisses the toast or when it times out.
             // The guard keeps a store-driven close (below) from dispatching
@@ -259,16 +342,30 @@ function NotificationsBridge() {
             }
           },
         });
-        idMap[notification.id] = toastId;
+        idMap[notification.id] = { toastId, notification };
       });
 
-    Object.entries(idMap).forEach(([id, toastId]) => {
+    // A notification changed in place (`updateNotification`): one job
+    // reporting its stages through a single toast rather than stacking one
+    // per stage. Base UI re-arms the auto-dismiss timer when the timeout
+    // changes, and clears it for `0`, so a timed toast updated to be held
+    // open does not still close on its first schedule.
+    notifications.forEach(notification => {
+      const entry = idMap[notification.id];
+      if (!entry || entry.notification === notification) {
+        return;
+      }
+      entry.notification = notification;
+      update(entry.toastId, contentOf(notification));
+    });
+
+    Object.entries(idMap).forEach(([id, { toastId }]) => {
       if (!notifications.some(notification => notification.id === id)) {
         delete idMap[id];
         close(toastId);
       }
     });
-  }, [notifications, add, close, dispatch, t]);
+  }, [notifications, add, close, update, dispatch, t]);
 
   return (
     <Toast.Portal>

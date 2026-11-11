@@ -252,4 +252,104 @@ describe('Notifications (Base UI bridge)', () => {
     unmount();
     expect(routerListeners).toHaveLength(0);
   });
+
+  it('renders a notification link as an anchor the editor can follow', () => {
+    notificationsState = [
+      {
+        id: 'n1',
+        message: 'Your change is live',
+        type: 'success',
+        link: { url: 'https://site.example', label: { key: 'ui.toast.viewSite' } },
+      },
+    ];
+    render(<Notifications />);
+
+    const link = screen.getByRole('link', { name: 'translated:ui.toast.viewSite' });
+    expect(link).toHaveAttribute('href', 'https://site.example');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('shows a spinner for a notification of work in progress', () => {
+    notificationsState = [{ id: 'n1', message: 'Publishing', type: 'success', spinner: true }];
+    render(<Notifications />);
+
+    expect(document.querySelector('.notif__spinner')).not.toBeNull();
+  });
+
+  // One toast follows a job through its stages instead of stacking one per stage.
+  it('updates a notification in place instead of stacking a second toast', () => {
+    notificationsState = [{ id: 'n1', message: 'Publishing', type: 'success', spinner: true, dismissAfter: 4000 }];
+    const { rerender } = render(<Notifications />);
+    expect(screen.getByText('Publishing')).toBeInTheDocument();
+
+    notificationsState = [
+      {
+        id: 'n1',
+        message: 'Your change is live',
+        type: 'success',
+        spinner: false,
+        dismissAfter: 8000,
+        link: { url: 'https://site.example', label: 'View' },
+      },
+    ];
+    rerender(<Notifications />);
+
+    expect(screen.getAllByText('Your change is live').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Publishing')).not.toBeInTheDocument();
+    expect(document.querySelectorAll('.notif__toast')).toHaveLength(1);
+    expect(document.querySelector('.notif__spinner')).toBeNull();
+    expect(screen.getByRole('link', { name: 'View' })).toHaveAttribute('href', 'https://site.example');
+  });
+
+  // A save toast that turns into a failed build must not still vanish on the
+  // timer armed for its first message.
+  it('cancels a queued dismissal when an update holds the toast open', () => {
+    vi.useFakeTimers();
+    notificationsState = [{ id: 'n1', message: 'Publishing', type: 'success', dismissAfter: 4000 }];
+    const { rerender } = render(<Notifications />);
+
+    notificationsState = [{ id: 'n1', message: 'Your site failed to build', type: 'error', dismissAfter: false }];
+    rerender(<Notifications />);
+
+    act(() => {
+      vi.advanceTimersByTime(10000);
+    });
+
+    expect(dispatchMock).not.toHaveBeenCalled();
+    expect(screen.getAllByText('Your site failed to build').length).toBeGreaterThan(0);
+  });
+
+  it('holds a notification open when dismissAfter is false', () => {
+    vi.useFakeTimers();
+    notificationsState = [{ id: 'n1', message: 'held', type: 'error', dismissAfter: false }];
+    render(<Notifications />);
+
+    act(() => {
+      vi.advanceTimersByTime(60000);
+    });
+
+    expect(dispatchMock).not.toHaveBeenCalled();
+  });
+
+  // A failure toast can carry a cyclic error in `details`; identity, not
+  // serialization, decides what changed.
+  it('renders and updates a notification whose details hold a cyclic error', () => {
+    const error = new Error('boom') as Error & { self?: unknown };
+    error.self = error;
+    const failed = {
+      id: 'n1',
+      message: { key: 'ui.toast.failed', details: error },
+      type: 'error',
+      dismissAfter: false,
+    };
+    notificationsState = [failed];
+    const { rerender } = render(<Notifications />);
+    expect(screen.getAllByText('translated:ui.toast.failed').length).toBeGreaterThan(0);
+
+    notificationsState = [{ ...failed, message: { key: 'ui.toast.retried', details: error } }];
+    rerender(<Notifications />);
+
+    expect(screen.getAllByText('translated:ui.toast.retried').length).toBeGreaterThan(0);
+  });
 });
