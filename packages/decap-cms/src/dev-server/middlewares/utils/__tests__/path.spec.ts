@@ -6,7 +6,7 @@ vi.unmock('path');
 import path from 'path';
 import { describe, expect, it, vi } from 'vitest';
 
-import { resolveRepoPath } from '@/dev-server/middlewares/utils/path';
+import { isGitDirSegment, resolveRepoPath } from '@/dev-server/middlewares/utils/path';
 
 describe('resolveRepoPath', () => {
   const repoPath = path.resolve('projects', 'repo');
@@ -29,5 +29,44 @@ describe('resolveRepoPath', () => {
     expect(() => resolveRepoPath(repoPath, outsidePath)).toThrow(
       'Path must resolve under the configured repository',
     );
+  });
+});
+
+describe('the .git directory', () => {
+  const repoPath = path.resolve('projects', 'repo');
+
+  it.each([
+    '.git/config',
+    '.git/hooks/pre-commit',
+    '.GIT/config',
+    'content/../.git/config',
+    'themes/theme/.git/config',
+    '.git./config',
+    '.git /config',
+    '.git::$INDEX_ALLOCATION/config',
+    'GIT~1/config',
+    '.git',
+  ])('rejects %s', filePath => {
+    expect(() => resolveRepoPath(repoPath, filePath)).toThrow(
+      "Path must not point into the repository's .git directory",
+    );
+  });
+
+  it.each(['.github/workflows/deploy.yml', '.gitignore', '.gitattributes', 'content/git.md'])(
+    'allows %s',
+    filePath => {
+      expect(() => resolveRepoPath(repoPath, filePath)).not.toThrow();
+    },
+  );
+
+  it('matches only whole segments', () => {
+    expect(isGitDirSegment('.git')).toBe(true);
+    expect(isGitDirSegment('.gitkeep')).toBe(false);
+  });
+
+  it('checks long segments in linear time', () => {
+    const started = Date.now();
+    expect(isGitDirSegment(`.git${' '.repeat(100000)}x`)).toBe(false);
+    expect(Date.now() - started).toBeLessThan(1000);
   });
 });

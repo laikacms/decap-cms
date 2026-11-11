@@ -2,6 +2,24 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 export const INVALID_PATH_MESSAGE = 'Path must resolve under the configured repository';
+export const GIT_PATH_MESSAGE = "Path must not point into the repository's .git directory";
+
+/**
+ * Whether a single path segment names the `.git` directory. Mirrors Git's own
+ * checks: case-insensitive (macOS and Windows file systems), with the trailing
+ * dots and spaces, NTFS alternate stream suffix and 8.3 short name that
+ * Windows also resolves to `.git`.
+ */
+export function isGitDirSegment(segment: string) {
+  const name = segment.toLowerCase();
+  // Anchored at both ends with a single character class, so these stay linear
+  // on long segments (a `[. ]+$` search backtracks on runs of spaces).
+  return (
+    (name.startsWith('.git') && /^[. ]*$/.test(name.slice(4)))
+    || name.startsWith('.git:')
+    || /^git~\d+$/.test(name)
+  );
+}
 
 function assertPathUnderRoot(repoRoot: string, resolvedPath: string) {
   const relativePath = path.relative(repoRoot, resolvedPath);
@@ -13,13 +31,19 @@ function assertPathUnderRoot(repoRoot: string, resolvedPath: string) {
   ) {
     throw new Error(INVALID_PATH_MESSAGE);
   }
+
+  // Git's config and hooks live under .git, so writing there runs commands
+  // (a clean filter on the next `git add`, a hook on the next commit).
+  if (relativePath.split(/[\\/]/).some(isGitDirSegment)) {
+    throw new Error(GIT_PATH_MESSAGE);
+  }
 }
 
 /**
  * Resolve `filePath` against the repository root, rejecting any path that
- * lexically escapes it (`../sibling`, absolute paths). Doesn't touch the
- * filesystem, so it can't see symlinks; use the async variants below before
- * reading or writing.
+ * lexically escapes it (`../sibling`, absolute paths) or points into `.git`.
+ * Doesn't touch the filesystem, so it can't see symlinks; use the async
+ * variants below before reading or writing.
  */
 export function resolveRepoPath(repoPath: string, filePath: string) {
   const repoRoot = path.resolve(repoPath);

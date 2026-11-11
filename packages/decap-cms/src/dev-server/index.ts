@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-import { createApp } from './app';
+import { createApp, startServer } from './app';
 import { registerMiddleware as registerLocalFs } from './middlewares/localFs';
 import { registerMiddleware as registerLocalGit } from './middlewares/localGit';
 
@@ -28,13 +28,10 @@ const host = process.env.BIND_HOST;
     process.exit(1);
   }
 
-  if (host) {
-    return app.listen(port, host, () => {
-      logger.info(`Decap CMS Proxy Server listening on ${host}:${port}`);
-    });
-  } else {
-    return app.listen(port, undefined, () => {
-      logger.info(`Decap CMS Proxy Server listening on port ${port}`);
-    });
+  try {
+    return await startServer(app, { port, host, logger });
+  } catch (e: unknown) {
+    logger.error(e instanceof Error ? e.message : 'Unknown error');
+    process.exit(1);
   }
 })();

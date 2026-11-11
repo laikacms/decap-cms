@@ -1,10 +1,11 @@
 // @vitest-environment node
+import http from 'node:http';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { createApp } from './app';
+import { createApp, isLoopbackAddress, startServer } from './app';
 import { registerMiddleware as registerLocalFs } from './middlewares/localFs';
 
-import type http from 'node:http';
+import type { AddressInfo } from 'node:net';
 import type { DevServerApp } from './app';
 
 // Console-shaped no-op logger: keeps expected 4xx responses out of the test output.
@@ -22,8 +23,11 @@ function listen(app: DevServerApp): Promise<string> {
   });
 }
 
+const originalEnv = { ...process.env };
+
 afterEach(() => {
   server?.close();
+  process.env = { ...originalEnv };
 });
 
 describe('createApp', () => {
@@ -80,11 +84,11 @@ describe('createApp', () => {
 
     const response = await fetch(`${baseUrl}/api/v1`, {
       method: 'OPTIONS',
-      headers: { 'Access-Control-Request-Headers': 'content-type' },
+      headers: { 'Access-Control-Request-Headers': 'content-type', Origin: 'http://localhost:5174' },
     });
 
     expect(response.status).toBe(204);
-    expect(response.headers.get('access-control-allow-origin')).toBe('*');
+    expect(response.headers.get('access-control-allow-origin')).toBe('http://localhost:5174');
     expect(response.headers.get('access-control-allow-methods')).toContain('POST');
     expect(response.headers.get('access-control-allow-headers')).toBe('content-type');
   });
@@ -129,5 +133,112 @@ describe('createApp', () => {
       body: JSON.stringify({ action: 'unknown' }),
     });
     expect(invalid.status).toBe(422);
+  });
+});
+
+// `fetch` can't set the Host header, so send these requests with node:http.
+function post(headers: Record<string, string>): Promise<number> {
+  const { port } = server.address() as AddressInfo;
+  return new Promise((resolve, reject) => {
+    const req = http.request(
+      {
+        host: '127.0.0.1',
+        port,
+        path: '/api/v1',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headers },
+      },
+      res => {
+        res.resume();
+        resolve(res.statusCode!);
+      },
+    );
+    req.on('error', reject);
+    req.end('{}');
+  });
+}
+
+async function startGuardedApp() {
+  const app = createApp({ logger });
+  app.post('/api/v1', (_req, res) => {
+    res.json({ ok: true });
+  });
+  await listen(app);
+}
+
+describe('request guard', () => {
+  it('accepts the CMS on localhost', async () => {
+    await startGuardedApp();
+    expect(await post({ Host: 'localhost:8081', Origin: 'http://localhost:1313' })).toBe(200);
+    expect(await post({ Host: '[::1]:8081' })).toBe(200);
+  });
+
+  it('refuses other origins', async () => {
+    await startGuardedApp();
+    expect(await post({ Host: 'localhost:8081', Origin: 'https://evil.example' })).toBe(403);
+  });
+
+  it('refuses CORS preflight requests from other origins', async () => {
+    await startGuardedApp();
+    const { port } = server.address() as AddressInfo;
+
+    const response = await fetch(`http://127.0.0.1:${port}/api/v1`, {
+      method: 'OPTIONS',
+      headers: { Origin: 'https://evil.example' },
+    });
+
+    expect(response.status).toBe(403);
+    expect(response.headers.get('access-control-allow-origin')).toBeNull();
+  });
+
+  it('refuses other host names, as sent after DNS rebinding', async () => {
+    await startGuardedApp();
+    expect(await post({ Host: 'evil.example:8081' })).toBe(403);
+    expect(await post({ Host: '127.evil.example:8081' })).toBe(403);
+  });
+
+  it('accepts the configured ORIGIN', async () => {
+    process.env.ORIGIN = 'https://cms.example';
+    await startGuardedApp();
+    expect(await post({ Host: 'localhost:8081', Origin: 'https://cms.example' })).toBe(200);
+    expect(await post({ Host: 'localhost:8081', Origin: 'http://localhost:1313' })).toBe(403);
+  });
+
+  it('accepts any host name once the server is bound to the network', async () => {
+    process.env.BIND_HOST = '0.0.0.0';
+    await startGuardedApp();
+    expect(await post({ Host: '192.168.1.5:8081' })).toBe(200);
+  });
+});
+
+describe('isLoopbackAddress', () => {
+  it.each(['localhost', 'cms.localhost', '127.0.0.1', '127.1.2.3', '::1', '[::1]'])(
+    '%s is loopback',
+    host => expect(isLoopbackAddress(host)).toBe(true),
+  );
+
+  it.each(['0.0.0.0', '::', '192.168.1.5', '127.evil.example', 'localhost.evil.example'])(
+    '%s is not loopback',
+    host => expect(isLoopbackAddress(host)).toBe(false),
+  );
+});
+
+describe('startServer', () => {
+  it('listens on this machine only unless a host is given', async () => {
+    server = await startServer(createApp({ logger }), { port: 0, logger });
+
+    expect(server.address()).toMatchObject({ address: '127.0.0.1' });
+  });
+
+  it('warns when bound to a network address', async () => {
+    const warnings: string[] = [];
+    server = await startServer(createApp({ logger }), {
+      port: 0,
+      host: '0.0.0.0',
+      logger: { ...logger, warn: (message: string) => warnings.push(message) },
+    });
+
+    expect(server.address()).toMatchObject({ address: '0.0.0.0' });
+    expect(warnings).toEqual([expect.stringContaining('no authentication')]);
   });
 });

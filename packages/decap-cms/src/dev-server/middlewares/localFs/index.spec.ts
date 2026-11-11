@@ -30,7 +30,7 @@ describe('localFsMiddleware', () => {
           action: 'getEntry',
           params: { ...defaultParams, path: '../' },
         }),
-        '"params.path" must resolve to a path under the configured repository',
+        '"params.path" must resolve to a path under the configured repository, outside its .git directory',
       );
     });
 
@@ -53,7 +53,7 @@ describe('localFsMiddleware', () => {
           action: 'entriesByFolder',
           params: { ...defaultParams, folder: '../', extension: 'md', depth: 1 },
         }),
-        '"params.folder" must resolve to a path under the configured repository',
+        '"params.folder" must resolve to a path under the configured repository, outside its .git directory',
       );
     });
 
@@ -76,7 +76,7 @@ describe('localFsMiddleware', () => {
           action: 'getMedia',
           params: { ...defaultParams, mediaFolder: '../' },
         }),
-        '"params.mediaFolder" must resolve to a path under the configured repository',
+        '"params.mediaFolder" must resolve to a path under the configured repository, outside its .git directory',
       );
     });
 

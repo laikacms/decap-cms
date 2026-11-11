@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-import { resolveExistingRepoPath, resolveNewRepoPath } from '@/dev-server/middlewares/utils/path';
+import { isGitDirSegment, resolveExistingRepoPath, resolveNewRepoPath } from '@/dev-server/middlewares/utils/path';
 
 async function listFiles(dir: string, extension: string, depth: number): Promise<string[]> {
   if (depth <= 0) {
@@ -9,7 +9,11 @@ async function listFiles(dir: string, extension: string, depth: number): Promise
   }
 
   try {
-    const dirents = await fs.readdir(dir, { withFileTypes: true });
+    const dirents = (await fs.readdir(dir, { withFileTypes: true })).filter(
+      // Never list (and so never move) Git's own files, e.g. when an entry at
+      // the repository root is renamed and its whole directory moves with it.
+      dirent => !isGitDirSegment(dirent.name),
+    );
     const files = await Promise.all(
       dirents.map(dirent => {
         const res = path.join(dir, dirent.name);
@@ -50,7 +54,9 @@ export async function listRepoFolders(repoPath: string, folder: string) {
   try {
     const folderPath = await resolveExistingRepoPath(repoPath, folder);
     const dirents = await fs.readdir(folderPath, { withFileTypes: true });
-    return dirents.filter(dirent => dirent.isDirectory()).map(dirent => path.join(folder, dirent.name));
+    return dirents
+      .filter(dirent => dirent.isDirectory() && !isGitDirSegment(dirent.name))
+      .map(dirent => path.join(folder, dirent.name));
   } catch (e: unknown) {
     return [];
   }

@@ -120,6 +120,15 @@ describe('dev-server fs utils', () => {
       expect(folders).toEqual([]);
     });
 
+    it('never lists the .git directory', async () => {
+      await fs.mkdir(path.join(repoPath, '.git'));
+      await fs.mkdir(path.join(repoPath, 'posts'));
+
+      const folders = await listRepoFolders(repoPath, '');
+
+      expect(folders).toEqual(['posts']);
+    });
+
     it('returns an empty array for a non-existent folder', async () => {
       const folders = await listRepoFolders(repoPath, 'does-not-exist');
 
@@ -189,5 +198,34 @@ describe('repository filesystem boundary', () => {
 
   it('lists nothing for a collection folder that does not exist yet', async () => {
     await expect(listRepoFiles(repoPath, 'content/not-created-yet', '.md', 10)).resolves.toEqual([]);
+  });
+
+  it('blocks writes into .git, also through a symlink', async () => {
+    const gitPath = "Path must not point into the repository's .git directory";
+    await fs.mkdir(path.join(repoPath, '.git'));
+    await fs.writeFile(path.join(repoPath, '.git', 'config'), 'original');
+    await fs.symlink(
+      path.join(repoPath, '.git'),
+      path.join(repoPath, 'linked'),
+      process.platform === 'win32' ? 'junction' : 'dir',
+    );
+
+    await expect(writeFile(repoPath, '.git/config', 'changed')).rejects.toThrow(gitPath);
+    await expect(writeFile(repoPath, 'linked/config', 'changed')).rejects.toThrow(gitPath);
+    await expect(readMediaFile(repoPath, 'linked/config')).rejects.toThrow(gitPath);
+    await expect(deleteFile(repoPath, 'linked/config')).rejects.toThrow(gitPath);
+    await expect(listRepoFiles(repoPath, 'linked', '', 10)).rejects.toThrow(gitPath);
+    await expect(fs.readFile(path.join(repoPath, '.git', 'config'), 'utf8')).resolves.toBe('original');
+  });
+
+  it('leaves .git in place when an entry at the repository root moves', async () => {
+    await fs.mkdir(path.join(repoPath, '.git'));
+    await fs.writeFile(path.join(repoPath, '.git', 'config'), 'original');
+    await fs.writeFile(path.join(repoPath, 'post.md'), 'post');
+
+    await move(repoPath, 'post.md', 'moved/post.md');
+
+    await expect(fs.readFile(path.join(repoPath, '.git', 'config'), 'utf8')).resolves.toBe('original');
+    await expect(fs.stat(path.join(repoPath, 'moved', '.git'))).rejects.toMatchObject({ code: 'ENOENT' });
   });
 });

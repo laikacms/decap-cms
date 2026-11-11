@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { pathTraversal } from '@/dev-server/middlewares/validation/customValidators';
 
-const REJECTION_MESSAGE = 'must resolve to a path under the configured repository';
+const REJECTION_MESSAGE = 'must resolve to a path under the configured repository, outside its .git directory';
 
 describe('pathTraversal', () => {
   const repoPath = path.resolve('/repo/root');
@@ -56,5 +56,13 @@ describe('pathTraversal', () => {
     // `repoPath + '-evil'` starts with the same characters as `repoPath` but is not
     // actually a subdirectory of it; a naive `startsWith` check would wrongly accept it.
     expect(validate(`${repoPath}-evil/payload.md`)).toBe(REJECTION_MESSAGE);
+  });
+
+  it('should reject paths into the .git directory', () => {
+    const validate = pathTraversal(repoPath);
+
+    expect(validate('.git/config')).toBe(REJECTION_MESSAGE);
+    expect(validate('.Git./hooks/pre-commit')).toBe(REJECTION_MESSAGE);
+    expect(validate('.gitignore')).toBeUndefined();
   });
 });

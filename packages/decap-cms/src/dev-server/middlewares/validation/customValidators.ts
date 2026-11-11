@@ -6,7 +6,7 @@ export function pathTraversal(repoPath: string) {
       resolveRepoPath(repoPath, value);
       return undefined;
     } catch (e: unknown) {
-      return 'must resolve to a path under the configured repository';
+      return 'must resolve to a path under the configured repository, outside its .git directory';
     }
   };
 }
