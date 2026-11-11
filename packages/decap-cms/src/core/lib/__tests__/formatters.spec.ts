@@ -15,10 +15,14 @@ import {
   commitMessageFormatter,
   folderFormatter,
   getProcessSegment,
+  MAX_SLUG_BYTES,
   prepareSlug,
   previewUrlFormatter,
+  slugByteBudget,
   slugFormatter,
   summaryFormatter,
+  truncateSlug,
+  utf8ByteLength,
 } from '@/core/lib/formatters';
 import { getFileFromSlug, selectIdentifier, selectInferredField } from '@/core/reducers/collections';
 
@@ -1073,6 +1077,79 @@ describe('formatters', () => {
         { date: new Date(Date.UTC(2026, 6, 28)) },
       );
       expect(result).toBe('2026-07-photo.jpg');
+    });
+  });
+
+  describe('slug byte budget', () => {
+    const slugConfig = { encoding: 'unicode', clean_accents: false, sanitize_replacement: '-' } as const;
+    const vietnamese = 'Hướng dẫn chăm sóc da mặt cho làn da nhạy cảm '.repeat(20);
+    const encoder = new TextEncoder();
+
+    function bytes(str: string) {
+      return encoder.encode(str).length;
+    }
+
+    it('counts bytes the way UTF-8 does', () => {
+      expect(utf8ByteLength('abc')).toBe(3);
+      expect(utf8ByteLength(vietnamese)).toBe(bytes(vietnamese));
+      expect(utf8ByteLength('😀')).toBe(4);
+    });
+
+    it('caps a long CJK title in bytes even within max_length', () => {
+      vi.mocked(selectIdentifier).mockReturnValueOnce('title');
+      // Within the 100 character max_length, but 3 bytes each: the filename
+      // sanitizer stops it at 255 bytes, too long for a workflow branch name.
+      const slug = slugFormatter({} as any, { title: '漢'.repeat(150) }, slugConfig);
+      expect(bytes(`refs/heads/cms/posts/${slug}`)).toBeGreaterThan(255);
+
+      const truncated = truncateSlug(slug, MAX_SLUG_BYTES, slugConfig);
+
+      expect(bytes(truncated)).toBeLessThanOrEqual(MAX_SLUG_BYTES);
+      expect(slug.startsWith(truncated)).toBe(true);
+    });
+
+    it('caps a long Vietnamese slug in bytes and ends on a word', () => {
+      const slug = vietnamese.trim().replace(/ /g, '-');
+      const truncated = truncateSlug(slug, MAX_SLUG_BYTES, slugConfig);
+
+      expect(bytes(truncated)).toBeLessThanOrEqual(MAX_SLUG_BYTES);
+      expect(truncated).not.toMatch(/[-_./\s]$/);
+      expect(slug.startsWith(truncated)).toBe(true);
+    });
+
+    it('leaves a slug within the budget alone', () => {
+      expect(truncateSlug('post-title', MAX_SLUG_BYTES, slugConfig)).toBe('post-title');
+    });
+
+    it('never splits a surrogate pair', () => {
+      expect(truncateSlug('abc😀😀', 9, slugConfig)).toBe('abc😀');
+      expect(truncateSlug('abc😀😀', 8, slugConfig)).toBe('abc😀');
+      expect(truncateSlug('abc😀😀', 6, slugConfig)).toBe('abc');
+    });
+
+    it('drops separators the cut leaves at the end, including a custom replacement', () => {
+      expect(truncateSlug('one-two-three', 8, slugConfig)).toBe('one-two');
+      expect(truncateSlug('dir/sub/name', 8, slugConfig)).toBe('dir/sub');
+      expect(truncateSlug('one__two__three', 10, { sanitize_replacement: '__' })).toBe('one__two');
+    });
+
+    it('keeps the editorial workflow branch within what GitHub accepts', () => {
+      const collection = { name: 'x'.repeat(100) } as any;
+      const budget = slugByteBudget(collection, {} as any);
+
+      expect(budget).toBeLessThan(MAX_SLUG_BYTES);
+      expect(bytes(`refs/heads/cms/${collection.name}/`) + budget).toBeLessThanOrEqual(255);
+    });
+
+    it('makes room for the repository under open authoring', () => {
+      const config = { backend: { open_authoring: true, repo: `owner/${'r'.repeat(80)}` } } as any;
+      const budget = slugByteBudget({ name: 'posts' } as any, config);
+
+      expect(bytes(`refs/heads/cms/${config.backend.repo}/posts/`) + budget).toBeLessThanOrEqual(255);
+    });
+
+    it('allows the full budget for a short collection name', () => {
+      expect(slugByteBudget({ name: 'posts' } as any, {} as any)).toBe(MAX_SLUG_BYTES);
     });
   });
 });

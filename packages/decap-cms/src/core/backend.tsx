@@ -22,7 +22,14 @@ import { FILES, FOLDER } from './constants/collectionTypes';
 import { status } from './constants/publishModes';
 import { resolveFormat } from './formats/formats';
 import { contentExists, entryDataFromContent, legacyRaw } from './lib/backendEntry';
-import { commitMessageFormatter, previewUrlFormatter, slugFormatter } from './lib/formatters';
+import {
+  commitMessageFormatter,
+  previewUrlFormatter,
+  slugByteBudget,
+  slugFormatter,
+  truncateSlug,
+  utf8ByteLength,
+} from './lib/formatters';
 import {
   formatI18nBackup,
   getEntryFilePaths,
@@ -754,10 +761,18 @@ export class Backend {
   ) {
     const slugConfig = config.slug;
     let slug: string;
+    // Capped in bytes, not characters: under the default `unicode` encoding a
+    // Vietnamese or CJK title keeps its characters raw at 2-4 bytes each, so
+    // even a slug within `max_length` could produce an editorial workflow
+    // branch GitHub refuses (refs are limited to 255 bytes). Not applied to a
+    // nested collection's custom path: that slug is derived from a path the
+    // editor typed, which is saved as-is and must keep matching it.
+    let maxBytes = Infinity;
     if (customPath) {
       slug = slugFromCustomPath(collection, customPath);
     } else {
-      slug = slugFormatter(collection, entryData, slugConfig);
+      maxBytes = slugByteBudget(collection, config);
+      slug = truncateSlug(slugFormatter(collection, entryData, slugConfig), maxBytes, slugConfig);
     }
     let i = 1;
     let uniqueSlug = slug;
@@ -772,7 +787,13 @@ export class Backend {
         selectUseWorkflow(config),
       ))
     ) {
-      uniqueSlug = `${slug}${sanitizeChar(' ', slugConfig)}${i++}`;
+      // The suffix is kept whole and the slug in front of it gives way, so a
+      // slug already at the cap stays within it once `-1`, `-2`, ... is added.
+      const suffix = `${sanitizeChar(' ', slugConfig)}${i++}`;
+      const base = maxBytes === Infinity
+        ? slug
+        : truncateSlug(slug, maxBytes - utf8ByteLength(suffix), slugConfig);
+      uniqueSlug = `${base}${suffix}`;
     }
     return uniqueSlug;
   }

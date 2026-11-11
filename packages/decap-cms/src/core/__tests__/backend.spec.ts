@@ -1133,6 +1133,77 @@ describe('Backend', () => {
         'sub_dir/some-post-title-1',
       );
     });
+
+    describe('length', () => {
+      const encoder = new TextEncoder();
+      const longVietnamese = 'hướng-dẫn-chăm-sóc-da-mặt-cho-làn-da-nhạy-cảm-'.repeat(20) + 'end';
+      const collection = {
+        name: 'posts',
+        fields: [{ name: 'title' }],
+        type: FOLDER,
+        folder: 'posts',
+        slug: '{{slug}}',
+      };
+
+      function notFound() {
+        return Promise.reject(Object.assign(new Error('Not Found'), { status: 404 }));
+      }
+
+      function bytes(str: string) {
+        return encoder.encode(str).length;
+      }
+
+      it('caps a newly generated slug so its workflow branch is a valid ref', async () => {
+        vi.mocked(sanitizeSlug).mockReturnValue(longVietnamese);
+        const implementation = { init: vi.fn(() => implementation), getEntry: notFound };
+        const backend = new Backend(implementation as any, { config: {}, backendName: 'github' } as any);
+
+        const slug = await backend.generateUniqueSlug(
+          collection as any,
+          { title: 'unused, sanitizeSlug is mocked' },
+          { slug: { encoding: 'unicode', sanitize_replacement: '-' } } as any,
+          [],
+          undefined,
+        );
+
+        expect(bytes(slug)).toBeLessThanOrEqual(200);
+        expect(bytes(`refs/heads/cms/posts/${slug}`)).toBeLessThanOrEqual(255);
+        expect(slug).not.toMatch(/-$/);
+        expect(longVietnamese.startsWith(slug)).toBe(true);
+      });
+
+      it('keeps the uniqueness suffix within the cap', async () => {
+        vi.mocked(sanitizeSlug).mockReturnValue('a'.repeat(300));
+        vi.mocked(sanitizeChar).mockReturnValue('-');
+        const implementation = { init: vi.fn(() => implementation), getEntry: notFound };
+        const backend = new Backend(implementation as any, { config: {}, backendName: 'github' } as any);
+
+        const slug = await backend.generateUniqueSlug(
+          collection as any,
+          { title: 'unused' },
+          { slug: { sanitize_replacement: '-' } } as any,
+          ['a'.repeat(200)],
+          undefined,
+        );
+
+        expect(slug).toBe(`${'a'.repeat(198)}-1`);
+      });
+
+      it('leaves a slug from a custom path alone', async () => {
+        const implementation = { init: vi.fn(() => implementation), getEntry: notFound };
+        const backend = new Backend(implementation as any, { config: {}, backendName: 'github' } as any);
+
+        const slug = await backend.generateUniqueSlug(
+          { ...collection, nested: { depth: 10 } } as any,
+          { title: 'unused' },
+          {} as any,
+          [],
+          `posts/${'d'.repeat(250)}/index.md`,
+        );
+
+        expect(slug).toBe(`${'d'.repeat(250)}/index`);
+      });
+    });
   });
 
   // decaporg #7612: a collection filter must see an i18n entry after its
