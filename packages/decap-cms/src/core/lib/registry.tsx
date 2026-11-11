@@ -274,6 +274,7 @@ export function registerBackend(name: string, BackendClass: BackendClass) {
   } else {
     registry.backends[name] = {
       init: (config: CmsConfig, opts: Record<string, unknown> = {}) => new BackendClass(config, opts),
+      BackendClass,
     };
   }
 }

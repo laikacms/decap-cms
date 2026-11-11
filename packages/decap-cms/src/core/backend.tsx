@@ -1,4 +1,4 @@
-import { flatten, get, set, sortBy, trim, uniq } from 'lodash-es';
+import { escapeRegExp, flatten, get, set, sortBy, trim, uniq } from 'lodash-es';
 
 import { rawContent } from '@/lib/backend/index';
 import {
@@ -502,6 +502,22 @@ interface ImplementationInitOptions {
    * gets the login screen instead of every subsequent request failing.
    */
   onSessionExpired: () => void;
+  /**
+   * The stored user as it is now, not as this tab last saw it: another tab of
+   * the same CMS may have rotated the credentials since (through
+   * `updateUserCredentials`), and a backend whose refresh tokens are
+   * single-use must read the newest ones before spending its own.
+   */
+  retrieveUserCredentials: () => CmsCredentials | null;
+  /**
+   * For a backend that learns mid-session that its session is gone for good
+   * and cannot be resumed by logging in again in place (a membership that was
+   * removed, a session revoked server-side). Core logs the user out and shows
+   * `message` on the login page, once, instead of every later request failing
+   * on its own toast. Compare `onSessionExpired`, which keeps the user and
+   * offers re-auth over the open work.
+   */
+  onSessionInvalid: (message: string) => void;
 }
 
 type Implementation = BackendImplementation & {
@@ -527,28 +543,63 @@ function collectionDepth(collection: CmsCollectionState) {
   return depth;
 }
 
-function i18nRulestring(ruleString: string, { defaultLocale, structure }: I18nInfo): string {
+function i18nRulestring(
+  ruleString: string,
+  { defaultLocale, structure }: I18nInfo,
+  localePattern = defaultLocale,
+): string {
   if (structure === I18N_STRUCTURE.MULTIPLE_FOLDERS) {
-    return `${defaultLocale}\\/${ruleString}`;
+    return `${localePattern}\\/${ruleString}`;
   }
 
   if (structure === I18N_STRUCTURE.MULTIPLE_FILES) {
-    return `${ruleString}\\.${defaultLocale}\\..*`;
+    return `${ruleString}\\.${localePattern}\\..*`;
   }
 
   return ruleString;
 }
 
-function collectionRegex(collection: CmsCollectionState): RegExp | undefined {
-  let ruleString = '';
+function collectionRuleString(collection: CmsCollectionState): string {
+  return collection.path ? `${collection.folder}/${collection.path}`.replace(/{{.*}}/gm, '(.*)') : '';
+}
 
-  if (collection.path) {
-    ruleString = `${collection.folder}/${collection.path}`.replace(/{{.*}}/gm, '(.*)');
-  }
+function collectionRegex(collection: CmsCollectionState): RegExp | undefined {
+  let ruleString = collectionRuleString(collection);
 
   if (hasI18n(collection)) {
     ruleString = i18nRulestring(ruleString, getI18nInfo(collection) as I18nInfo);
   }
+
+  return ruleString ? new RegExp(ruleString) : undefined;
+}
+
+/**
+ * The same selector as `collectionRegex`, for the i18n locales it leaves out,
+ * so a caching backend can warm them for the editor. Built from the same rule
+ * string so the two cannot drift; undefined when there is nothing extra.
+ */
+export function localeSiblingRegex(collection: CmsCollectionState): RegExp | undefined {
+  if (!hasI18n(collection)) {
+    return undefined;
+  }
+
+  const i18n = getI18nInfo(collection) as I18nInfo;
+  const { structure, defaultLocale, locales } = i18n;
+
+  if (structure === I18N_STRUCTURE.SINGLE_FILE) {
+    return undefined;
+  }
+
+  const siblings = (locales || []).filter(locale => locale !== defaultLocale);
+  if (siblings.length === 0) {
+    return undefined;
+  }
+
+  const ruleString = i18nRulestring(
+    collectionRuleString(collection),
+    i18n,
+    `(?:${siblings.map(escapeRegExp).join('|')})`,
+  );
 
   return ruleString ? new RegExp(ruleString) : undefined;
 }
@@ -577,6 +628,19 @@ export class Backend {
   backupSync: AsyncLock;
 
   private sessionExpiredListeners = new Set<() => void>();
+  private sessionInvalidListeners = new Set<(message: string) => void>();
+
+  /**
+   * Subscribe to a session the implementation reports dead for good (see
+   * `ImplementationInitOptions.onSessionInvalid`). Returns the unsubscribe
+   * function. The app layer wires this to `sessionInvalidated`.
+   */
+  onSessionInvalid(listener: (message: string) => void): () => void {
+    this.sessionInvalidListeners.add(listener);
+    return () => {
+      this.sessionInvalidListeners.delete(listener);
+    };
+  }
 
   /**
    * Subscribe to unrecoverable session expiry reported by the implementation
@@ -615,6 +679,10 @@ export class Backend {
       initialWorkflowStatus: Object.values(status)[0] ?? '',
       onSessionExpired: () => {
         for (const listener of this.sessionExpiredListeners) listener();
+      },
+      retrieveUserCredentials: this.retrieveUserCredentials,
+      onSessionInvalid: (message: string) => {
+        for (const listener of this.sessionInvalidListeners) listener(message);
       },
     });
     this.backendName = backendName;
@@ -673,6 +741,12 @@ export class Backend {
       this.authStore!.store(this.user as CmsUser);
       return this.user;
     }
+  };
+
+  /** The stored user as it is now: another tab may have rotated single-use tokens. */
+  retrieveUserCredentials = (): CmsCredentials | null => {
+    const storedUser = this.authStore?.retrieve();
+    return storedUser && storedUser.backendName === this.backendName ? storedUser : null;
   };
 
   authComponent() {
@@ -896,7 +970,7 @@ export class Backend {
   // repeats the process. Once there is no available "next" action, it
   // returns all the collected entries. Used to retrieve all entries
   // for local searches and queries.
-  async listAllEntries(collection: CmsCollectionState) {
+  async listAllEntries(collection: CmsCollectionState, searchTerm?: string) {
     if (collection.folder && this.implementation.allEntriesByFolder) {
       const depth = collectionDepth(collection);
       const extension = selectFolderEntryExtension(collection);
@@ -906,6 +980,9 @@ export class Backend {
           extension,
           depth,
           collectionRegex(collection),
+          searchTerm,
+          // The locales this listing leaves out, for a caching backend to warm.
+          localeSiblingRegex(collection),
         )
         .then(entries => this.processEntries(entries, collection));
     }
@@ -926,8 +1003,9 @@ export class Backend {
     searchFields: string[],
     searchTerm: string,
   ) {
-    const collectionEntries = await this.listAllEntries(collection);
     const { clauses, freeText } = parseSearchTerm(searchTerm);
+    // Only the free text goes to the backend: field clauses are matched here.
+    const collectionEntries = await this.listAllEntries(collection, freeText || undefined);
     const matchingEntries = collectionEntries.filter(entry => matchesSearchClauses(entry, searchFields, clauses));
     if (!freeText) {
       return matchingEntries.map((original, index) => ({ original, score: 100, index }));
@@ -948,9 +1026,16 @@ export class Backend {
     // collection, load it, search, and call onCollectionResults with
     // its results.
     const errors: Error[] = [];
+    const searchesEntryBody = this.implementation.searchesEntryBody === true;
     const collectionEntriesRequests = collections
       .map(collection => {
         const searchFields = getCollectionSearchFields(collection);
+        // Fuzzy matching is subsequence matching, so a long body matches
+        // almost any short term. Only a backend that already matched the body
+        // server-side opts in, so this pass does not drop its hits.
+        if (searchesEntryBody && collection.type !== FILES && !searchFields.includes('body')) {
+          searchFields.push('body');
+        }
         return this.searchCollectionEntries(collection, searchFields, searchTerm);
       })
       .map(p =>

@@ -6,6 +6,7 @@ import { translate } from '@/core/i18n';
 import { stripProtocol } from '@/core/lib/urlHelper';
 import { colors, Dropdown, DropdownButton, DropdownItem, Icon } from '@/ui/default/index';
 
+import type { UserIdentity } from '@/core/lib/userHelper';
 import type { TranslateFunction } from '@/ui/default/index';
 
 const styles = {
@@ -66,6 +67,30 @@ const AppHeaderTestRepoIndicator = styled.a`
   ${headerLinkTruncation};
 `;
 
+// Not a DropdownItem: it says who you are signed in as, it is not something
+// you can pick, so it stays out of the menu's keyboard rotation.
+const AccountLabel = styled.div`
+  padding: 8px 14px;
+  border-bottom: 1px solid ${colors.textFieldBorder};
+  margin-bottom: 4px;
+  cursor: default;
+`;
+
+const AccountLabelLine = styled.div`
+  font-size: 13px;
+  font-weight: 500;
+  color: ${colors.text};
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const AccountLabelEmail = styled(AccountLabelLine)`
+  font-size: 12px;
+  font-weight: 400;
+  color: ${colors.textLead};
+`;
+
 interface AvatarProps {
   imageUrl?: string | undefined;
 }
@@ -78,6 +103,8 @@ interface SettingsDropdownProps {
   displayUrl?: string | undefined;
   isTestRepo?: boolean | undefined;
   imageUrl?: string | undefined;
+  /** Who is signed in; see `selectUserIdentity`. */
+  identity?: UserIdentity | undefined;
   onLogoutClick: () => void;
   t: TranslateFunction;
 }
@@ -86,6 +113,7 @@ function SettingsDropdown({
   displayUrl,
   isTestRepo,
   imageUrl,
+  identity,
   onLogoutClick,
   t,
 }: SettingsDropdownProps) {
@@ -109,7 +137,7 @@ function SettingsDropdown({
         : null}
       <Dropdown
         dropdownTopOverlap="50px"
-        dropdownWidth="100px"
+        dropdownWidth={identity ? '220px' : '100px'}
         dropdownPosition="right"
         renderButton={() => (
           <AvatarDropdownButton aria-label={t('ui.settingsDropdown.account')}>
@@ -117,6 +145,16 @@ function SettingsDropdown({
           </AvatarDropdownButton>
         )}
       >
+        {identity
+          ? (
+            <AccountLabel>
+              <AccountLabelLine title={identity.label}>{identity.label}</AccountLabelLine>
+              {identity.email
+                ? <AccountLabelEmail title={identity.email}>{identity.email}</AccountLabelEmail>
+                : null}
+            </AccountLabel>
+          )
+          : null}
         <DropdownItem label={t('ui.settingsDropdown.logOut')} onClick={onLogoutClick} />
       </Dropdown>
     </React.Fragment>

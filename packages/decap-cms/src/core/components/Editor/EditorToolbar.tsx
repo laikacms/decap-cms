@@ -11,6 +11,7 @@ import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useShortcut } from '@/core/hooks/useShortcut';
 import { translate } from '@/core/i18n';
 import { canEditCollection } from '@/core/lib/collectionAccess';
+import { selectUserIdentity } from '@/core/lib/userHelper';
 import { Link } from '@/core/routing/Link';
 import {
   buttons,
@@ -800,6 +801,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
         <SettingsDropdown
           displayUrl={displayUrl}
           imageUrl={user?.avatar_url}
+          identity={selectUserIdentity(user)}
           onLogoutClick={onLogoutClick}
         />
       </ToolbarSectionMeta>

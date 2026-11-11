@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import React, { useCallback, useEffect, useMemo } from 'react';
 
-import { loginUser, logoutUser, sessionExpired } from '@/core/actions/auth';
+import { loginUser, logoutUser, sessionExpired, sessionInvalidated } from '@/core/actions/auth';
 import { createNewEntry } from '@/core/actions/collections';
 import { openMediaLibrary } from '@/core/actions/mediaLibrary';
 import { currentBackend } from '@/core/backend';
@@ -619,6 +619,14 @@ function AppContent({
   useEffect(() => {
     if (config == null || config.isFetching || config.error) return;
     return currentBackend(config).onSessionExpired(() => dispatch(sessionExpired()));
+  }, [config, dispatch]);
+
+  // A session the backend reports dead for good (no re-auth in place can
+  // resume it, e.g. a revoked site membership): logged out once, with the
+  // reason on the login page.
+  useEffect(() => {
+    if (config == null || config.isFetching || config.error) return;
+    return currentBackend(config).onSessionInvalid(message => dispatch(sessionInvalidated(message)));
   }, [config, dispatch]);
 
   const handleOpenMediaLibrary = useCallback(

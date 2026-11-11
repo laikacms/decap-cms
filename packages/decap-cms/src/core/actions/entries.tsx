@@ -1062,7 +1062,9 @@ export function persistEntry(collection: Collection) {
           entryTag(collection.name, entry.slug),
           entryTag(collection.name, newSlug),
         ]);
-        if (collection.nested != null) {
+        // A backend that serves listings from a cache the save does not update
+        // in place (Decap Turbo) asks for the reload, which also re-syncs it.
+        if (collection.nested != null || backend.implementation?.reloadEntriesAfterPersist) {
           await dispatch(loadEntries(collection));
         }
         if (entry.slug !== newSlug) {

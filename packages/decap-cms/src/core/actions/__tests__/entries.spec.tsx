@@ -589,6 +589,30 @@ describe('entries', () => {
       expect(types).not.toContain('ENTRY_PERSIST_SUCCESS');
       expect(loadMedia).not.toHaveBeenCalled();
     });
+
+    // Upstream 8caaf5416: a caching backend (Decap Turbo) asks for a reload.
+    it('reloads the collection when the backend asks for it after a save', async () => {
+      const listEntries = vi.fn().mockResolvedValue({ entries: [], pagination: 0, cursor: undefined });
+      currentBackend.mockReturnValue({
+        persistEntry: vi.fn().mockResolvedValue('hello'),
+        listEntries,
+        implementation: { reloadEntriesAfterPersist: true },
+      } as never);
+
+      const store = storeWithDraft();
+      await store.dispatch(persistEntry(collection as never) as never);
+
+      expect(typesOf(store)).toContain('ENTRIES_REQUEST');
+    });
+
+    it('does not reload the collection for a backend that does not ask', async () => {
+      currentBackend.mockReturnValue({ persistEntry: vi.fn().mockResolvedValue('hello'), implementation: {} } as never);
+
+      const store = storeWithDraft();
+      await store.dispatch(persistEntry(collection as never) as never);
+
+      expect(typesOf(store)).not.toContain('ENTRIES_REQUEST');
+    });
   });
 
   describe('persistEntry - unique field validation', () => {

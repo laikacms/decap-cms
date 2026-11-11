@@ -9,6 +9,7 @@ import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
 import { canEditCollection } from '@/core/lib/collectionAccess';
+import { selectUserIdentity } from '@/core/lib/userHelper';
 import { selectCreatableCollectionNames } from '@/core/lib/canCreateNewEntry';
 import { useLocation } from '@/core/routing/context';
 import { NavLink } from '@/core/routing/Link';
@@ -306,6 +307,7 @@ function Header({
             displayUrl={displayUrl}
             isTestRepo={isTestRepo}
             imageUrl={user?.avatar_url}
+            identity={selectUserIdentity(user)}
             onLogoutClick={onLogoutClick}
           />
         </AppHeaderActions>

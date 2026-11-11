@@ -22,6 +22,7 @@ export {
 } from './APIUtils.js';
 export { asyncLock } from './asyncLock.js';
 export {
+  collectionKeyForFiles,
   filterByExtension,
   getAllResponses,
   getPathDepth,

@@ -50,13 +50,19 @@ vi.mock('../../../core/components/UI', async () => {
 // and never authenticates. Stub currentBackend to a subscription that records
 // its listeners, so the session-expiry specs below can fire the event.
 const sessionExpiredListeners = vi.hoisted(() => [] as Array<() => void>);
+const sessionInvalidListeners = vi.hoisted(() => [] as Array<(message: string) => void>);
 vi.mock('@/core/backend', () => ({
   currentBackend: () => ({
     onSessionExpired: (listener: () => void) => {
       sessionExpiredListeners.push(listener);
       return () => {};
     },
+    onSessionInvalid: (listener: (message: string) => void) => {
+      sessionInvalidListeners.push(listener);
+      return () => {};
+    },
     authComponent: () => null,
+    logout: () => Promise.resolve(),
   }),
 }));
 
@@ -409,6 +415,38 @@ describe('AppContent - session-expired re-auth overlay', () => {
     const types = store.getActions().map(action => action.type);
     expect(types).toContain('auth/sessionExpired');
     expect(types.some(type => String(type).startsWith('auth/logoutUser'))).toBe(false);
+  });
+
+  it('logs out with the reason when the backend reports the session invalid', () => {
+    const state = baseState();
+    const store = mockStore(state);
+    const decapValue = {
+      config: state.config,
+      theme: {},
+      routing: defaultRoutingTable,
+      router: {} as any,
+      navigate: vi.fn(),
+      params: vi.fn(),
+      path: '/collections/posts',
+    };
+    sessionInvalidListeners.length = 0;
+
+    render(
+      <Provider store={store}>
+        <context.Provider value={decapValue}>
+          <AppContent />
+        </context.Provider>
+      </Provider>,
+    );
+
+    expect(sessionInvalidListeners.length).toBeGreaterThan(0);
+    act(() => {
+      for (const listener of sessionInvalidListeners) listener('No access to this site.');
+    });
+
+    const actions = store.getActions();
+    expect(actions).toContainEqual({ type: 'auth/authError', payload: 'No access to this site.' });
+    expect(actions.some(action => action.type === 'auth/logoutUser/pending')).toBe(true);
   });
 });
 

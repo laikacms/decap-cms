@@ -126,7 +126,31 @@ export interface BackendImplementation {
     extension: string,
     depth: number,
     pathRegex?: RegExp,
+    /**
+     * The free-text part of a search, when this listing serves one. A backend
+     * that can search server-side may narrow the result to it; one that
+     * cannot ignores it and core filters as usual.
+     */
+    searchTerm?: string,
+    /**
+     * Selects the i18n locale files `pathRegex` excludes: the listing wants
+     * one file per entry, the editor wants every locale. Advisory: a backend
+     * that caches can warm those files, and one that does not may ignore it.
+     * The returned entries must not include them either way.
+     */
+    localeSiblingRegex?: RegExp,
   ) => Promise<BackendEntry[]>;
+  /**
+   * True when `allEntriesByFolder` already matched `searchTerm` against entry
+   * bodies, so core's own search pass may include the body without changing
+   * results on backends that only search the listed fields.
+   */
+  searchesEntryBody?: boolean;
+  /**
+   * True when the backend serves listings from a cache that a save does not
+   * update in place, so core reloads the collection's entries after a save.
+   */
+  reloadEntriesAfterPersist?: boolean;
   traverseCursor?: (
     cursor: Cursor,
     action: string,
@@ -220,7 +244,16 @@ export interface BackendImplementation {
  * The constructor `registerBackend(name, BackendClass)` expects: instantiated
  * by the engine with the resolved config and any extra options.
  */
-export type BackendClass = new(
-  config: CmsConfig,
-  opts?: Record<string, unknown>,
-) => BackendImplementation;
+export type BackendClass =
+  & (new(
+    config: CmsConfig,
+    opts?: Record<string, unknown>,
+  ) => BackendImplementation)
+  & {
+    /**
+     * Resolves the backend's own config before the backend is constructed
+     * (optional). Core awaits it in `loadConfig`, after local-backend
+     * detection, so a running local proxy still takes over.
+     */
+    preloadConfig?: (config: CmsConfig) => Promise<CmsConfig>,
+  };
