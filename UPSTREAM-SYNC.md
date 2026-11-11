@@ -38,10 +38,9 @@ Statuses: `todo` · `done` · `ported-by-laika` (already on v4-beta before this 
 Decisions (2026-11-11):
 
 - Turbo: `lib-turbo`, the turbo-github and turbo-gitlab backends, the core hooks they need (backend `preloadConfig`, backend permissions, dead-session logout, `reloadEntriesAfterPersist`, server-side body search, signed-in user identity) and the experimental editor API / field actions: ported. The S3 media library: not ported.
-- The `decap` CLI: ported as the sibling package `packages/decap` (`@decap/cli`, `private: true` for now); `decap dev` runs v4's dev server.
+- The `decap` CLI: ported as the sibling package `packages/decap` (`@decap/cli`, public as upstream, version 0.2.0-beta.0); `decap dev` runs v4's dev server.
+- Deploy status (save toasts, Deploys page, header indicator, turbo-github deploy watcher): ported. turbo-gitlab has none, as upstream.
 - Dependency bumps from #8030/#8046/#8051: not taken this sync (v4's dependencies were cleaned separately).
-
-Still open: the deploy-status feature (save toasts, Deploys page, header indicator, turbo-github deploy watcher), rows marked `ask`.
 
 Dependency versions upstream flagged, for reference: v4's lockfile still has versions upstream's #8030/#8046/#8051 flagged: `smol-toml` 1.7.0 (direct dependency, the TOML codec; fixed in 1.9.0), `trim` 0.0.1 (via `remark-parse` 6, bundled; fixed in 0.0.3), `fast-uri` 3.1.8 (<3.1.9), `js-yaml` 4.3.0 (<4.3.2), `undici` 7.28.0 (jsdom, tests only), `brace-expansion` 5.0.7 (eslint, dev only), and `simple-git` 3.36.0 (dev server; upstream moved to 4 for a critical advisory with no 3.x fix).
 
@@ -212,17 +211,17 @@ Not yet checked against a real backend: `b759e3b85` (GitLab MR sha on publish), 
 | `9033db718` | 2026-09-01 |  | feat(backend-turbo-github): commit via Turbo edge endpoint | done | b1deefbf6 | Turbo, at its final upstream state |
 | `05ad284cd` | 2026-09-01 |  | feat(turbo-github): flag assets in the commit payload (B2) | done | b1deefbf6 | Turbo, at its final upstream state |
 | `b51a74488` | 2026-09-01 |  | fix: release editor before media library reload on entry save | done | 1b6ff7177 |  |
-| `b95546d9c` | 2026-09-02 |  | feat(turbo-github): poll site_deployments for deploy status (A3) | ask |  | deploy-status feature: not ported, pending decision |
-| `4aa5b0afc` | 2026-09-02 |  | feat(core): follow a save's deploy in one updating toast (A4) | ask |  | deploy-status feature: not ported, pending decision |
-| `6e7bee01f` | 2026-09-02 |  | fix(core): let a new save clear the previous deploy toast in every state | ask |  | deploy-status feature: not ported, pending decision |
-| `ce3ef092a` | 2026-09-02 |  | feat(core,turbo-github): async, entry-scoped deploy notifications (A4b) | ask |  | deploy-status feature: not ported, pending decision |
-| `73fc570b2` | 2026-09-02 |  | fix(turbo-github): three defects in the ledger watcher | ask |  | deploy-status feature: not ported, pending decision |
-| `a115a1906` | 2026-09-02 |  | fix(core): let an update cancel a queued dismissal | ask |  | deploy-status feature: not ported, pending decision |
-| `18278989b` | 2026-09-02 |  | feat(deploy-status): a Deploys page and a header state indicator (A8) | ask |  | deploy-status feature: not ported, pending decision |
-| `43390116c` | 2026-09-02 |  | fix(deploy-status): subscribe once the user exists, not only at mount | ask |  | deploy-status feature: not ported, pending decision |
-| `cb998a37d` | 2026-09-02 |  | refactor(deploy-status): address review of the Deploys page and indicator | ask |  | deploy-status feature: not ported, pending decision |
-| `6bce67b50` | 2026-09-02 |  | feat(deploy-status): saved entry and published-to columns, stateful nav | ask |  | deploy-status feature: not ported, pending decision |
-| `69f57764b` | 2026-09-02 |  | fix(deploy-status): only the site's own branch can be Live | ask |  | deploy-status feature: not ported, pending decision |
+| `b95546d9c` | 2026-09-02 |  | feat(turbo-github): poll site_deployments for deploy status (A3) | done | 10ae11707 | deploy status |
+| `4aa5b0afc` | 2026-09-02 |  | feat(core): follow a save's deploy in one updating toast (A4) | done | cf6df4afc | deploy status |
+| `6e7bee01f` | 2026-09-02 |  | fix(core): let a new save clear the previous deploy toast in every state | done | cf6df4afc | final form, as reshaped by ce3ef092a |
+| `ce3ef092a` | 2026-09-02 |  | feat(core,turbo-github): async, entry-scoped deploy notifications (A4b) | done | cf6df4afc, 10ae11707 | deploy status |
+| `73fc570b2` | 2026-09-02 |  | fix(turbo-github): three defects in the ledger watcher | done | 10ae11707 | deploy status |
+| `a115a1906` | 2026-09-02 |  | fix(core): let an update cancel a queued dismissal | done | cf6df4afc | Base UI re-arms the dismiss timer; test added |
+| `18278989b` | 2026-09-02 |  | feat(deploy-status): a Deploys page and a header state indicator (A8) | done | cf6df4afc, e60152487, 10ae11707 | deploy status |
+| `43390116c` | 2026-09-02 |  | fix(deploy-status): subscribe once the user exists, not only at mount | done | e60152487 | deploy status |
+| `cb998a37d` | 2026-09-02 |  | refactor(deploy-status): address review of the Deploys page and indicator | done | cf6df4afc, e60152487, 10ae11707 | deploy status |
+| `6bce67b50` | 2026-09-02 |  | feat(deploy-status): saved entry and published-to columns, stateful nav | done | cf6df4afc, e60152487, 10ae11707 | deploy status |
+| `69f57764b` | 2026-09-02 |  | fix(deploy-status): only the site's own branch can be Live | done | cf6df4afc, e60152487, 10ae11707 | deploy status |
 | `465bdd7b0` | 2026-09-02 |  | fix(core): stop Editor crashing when its route names a collection missing from state | n/a |  | v4 withWorkflow is unused; the editor renders under CollectionGuard |
 | `295ae6dae` | 2026-09-02 |  | feat(turbo-github,turbo-gitlab): show signed-in user identity and clear session on logout | done | 028fd856e, b1deefbf6, 8420159ee | Turbo, at its final upstream state |
 | `133dd267c` | 2026-09-02 |  | perf(turbo-github,turbo-gitlab,backend-github): cut redundant and duplicate reads | done | bff12125b, b1deefbf6 | plain GitHub half earlier; Turbo half with the backend |
@@ -230,21 +229,21 @@ Not yet checked against a real backend: `b759e3b85` (GitLab MR sha on publish), 
 | `2792b04c9` | 2026-09-02 |  | fix: make pnpm run build and lint work under corepack-managed pnpm | n/a |  | corepack/pnpm build fix for the old monorepo |
 | `e456ac6db` | 2026-09-02 |  | fix(turbo-github,turbo-gitlab): refresh the token before fetching permissions | done | b1deefbf6, 8420159ee | Turbo, at its final upstream state |
 | `cd9b02829` | 2026-09-02 |  | perf(turbo-github): route a first editorial-workflow save through _content/commit | done | b1deefbf6 | Turbo, at its final upstream state |
-| `35290647f` | 2026-09-02 |  | fix(turbo-github): do not watch a deploy for an editorial-workflow save | ask |  | deploy-status feature: not ported, pending decision |
+| `35290647f` | 2026-09-02 |  | fix(turbo-github): do not watch a deploy for an editorial-workflow save | done | 10ae11707 | deploy status |
 | `591c14591` | 2026-09-02 |  | fix(core): give the unpublished-entry shortcut a freshness window | n/a |  | fixes the workflow-membership shortcut from f8e58aeea, which v4 does not have |
-| `90b58c822` | 2026-09-02 |  | fix(core,turbo-github): three defects in deploy watching | ask |  | deploy-status feature: not ported, pending decision |
+| `90b58c822` | 2026-09-02 |  | fix(core,turbo-github): three defects in deploy watching | done | cf6df4afc, 10ae11707 | deploy status |
 | `9edbd073f` | 2026-09-02 |  | chore(turbo-github,turbo-gitlab): unbreak type-check and lint | done | b1deefbf6, 8420159ee | Turbo, at its final upstream state |
 | `0aba0fc7a` | 2026-09-03 |  | fix(turbo-github,turbo-gitlab): treat a dead refresh token as terminal | done | b1deefbf6, 8420159ee | Turbo, at its final upstream state |
-| `feb232e87` | 2026-09-03 |  | feat(deploys): live per branch, a stalled state, and table controls | ask |  | deploy-status feature: not ported, pending decision |
-| `a32ba3051` | 2026-09-03 |  | fix(deploys): name the success state in the filter | ask |  | deploy-status feature: not ported, pending decision |
-| `b3b3a6a43` | 2026-09-03 |  | feat(deploys): filter by the state shown, and sort every column | ask |  | deploy-status feature: not ported, pending decision |
+| `feb232e87` | 2026-09-03 |  | feat(deploys): live per branch, a stalled state, and table controls | done | e60152487, 10ae11707 | filters, sorting and paging dropped, as upstream 9860058e2 did |
+| `a32ba3051` | 2026-09-03 |  | fix(deploys): name the success state in the filter | done | e60152487 | deploy status |
+| `b3b3a6a43` | 2026-09-03 |  | feat(deploys): filter by the state shown, and sort every column | done | e60152487 | only its final effect survives 9860058e2 |
 | `b26cb2722` | 2026-09-03 |  | perf(core,turbo-github,turbo-gitlab): stop hydrating every draft, cache i18n siblings | done | 028fd856e, b1deefbf6 | localeSiblingRegex only; the draft-hydration change is the workflow shortcut, not ported |
 | `c38e1fa36` | 2026-09-04 |  | fix(turbo-github,turbo-gitlab): let config.yml's branch beat the sites row | done | b1deefbf6, 8420159ee | Turbo, at its final upstream state |
 | `27927cbbe` | 2026-09-07 |  | fix(core,media-library-s3): stop handing media libraries the refresh token | skip |  | media library context for the S3 library, which is not ported |
 | `1a2c097e2` | 2026-09-07 |  | fix(media-library-s3): stop logging response headers on API errors | skip |  | S3 media library: not ported (owner chose lib-turbo, backends and CLI) |
 | `28e58fd76` | 2026-09-07 |  | fix(turbo-github,turbo-gitlab): stop sending an email, and log the branch actually committed to | done | b1deefbf6, 8420159ee | Turbo, at its final upstream state |
 | `a349f2c2a` | 2026-09-09 |  | chore(core,turbo-github,turbo-gitlab,media-library-s3): clear the lint drift | n/a |  | lint drift in Turbo-era code |
-| `7f6e6b1b5` | 2026-09-09 |  | fix(core): match the preview-path sentinel by origin, not by prefix | ask |  | deploy-status feature: not ported, pending decision |
+| `7f6e6b1b5` | 2026-09-09 |  | fix(core): match the preview-path sentinel by origin, not by prefix | done | cf6df4afc | deploy status |
 | `5deeb6e68` | 2026-09-09 |  | fix(core): stop a persisted slug passing for a loaded workflow list | n/a |  | reverted upstream by 6bfbe4e17 |
 | `6bfbe4e17` | 2026-09-09 |  | Revert "fix(core): stop a persisted slug passing for a loaded workflow list" | n/a |  | revert |
 | `a9d5c942b` | 2026-09-09 |  | test(e2e): report unmatched routes and DOM state when a spec fails | n/a |  | Cypress triage probe |
@@ -291,7 +290,7 @@ Not yet checked against a real backend: `b759e3b85` (GitLab MR sha on publish), 
 | `c1927b9d1` | 2026-10-08 |  | feat(decap): publish the CLI as @decap/cli | done | e0480a4f7 | decap CLI (packages/decap) |
 | `e7b981522` | 2026-10-08 |  | chore(release): publish | n/a |  | release commit |
 | `090cb56eb` | 2026-10-08 |  | fix(release): treat a staged upload as done and a tag move as a warning | n/a |  | release tooling |
-| `9860058e2` | 2026-10-12 |  | refactor(core): ship the Deploys page as a plain table | ask |  | deploy-status feature: not ported, pending decision |
+| `9860058e2` | 2026-10-12 |  | refactor(core): ship the Deploys page as a plain table | done | e60152487 | deploy status |
 | `e57639bcd` | 2026-10-12 |  | fix(core): search body only on backends that search it, and other GA fixes | n/a |  | body search and notification signature were Turbo-branch additions; workflow key half is the shortcut; rest tidies Turbo code |
 | `c779d90b1` | 2026-10-12 |  | fix(turbo-github,turbo-gitlab): send site_id on login and drop the GraphQL deep import | done | ec065c035, 69d4d1e46, b1deefbf6 |  |
 | `8dcfe3e6d` | 2026-10-12 |  | fix(media-library-s3): encode object keys and surface plan-gate errors | skip |  | S3 media library: not ported (owner chose lib-turbo, backends and CLI) |
