@@ -43,10 +43,18 @@ function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit): Promise
     });
 }
 
+// Query strings written by servers, such as Bitbucket's pagination links, use
+// `+` for spaces. `decodeURIComponent` keeps `+` as is, which would then be
+// sent back as `%2B`, so turn it into a space first. A literal plus always
+// arrives as `%2B`.
+function decodeQueryPart(part: string): string {
+  return decodeURIComponent(part.replace(/\+/g, ' '));
+}
+
 function decodeParams(paramsString: string): Record<string, string> {
   return paramsString.split('&').reduce(
     (acc, pair) => {
-      const [k, v] = pair.split('=').map(decodeURIComponent);
+      const [k, v] = pair.split('=').map(decodeQueryPart);
       if (k) acc[k] = v ?? '';
       return acc;
     },

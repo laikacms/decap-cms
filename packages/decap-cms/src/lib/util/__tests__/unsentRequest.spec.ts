@@ -18,4 +18,24 @@ describe('unsentRequest', () => {
       });
     });
   });
+
+  describe('fromURL', () => {
+    it('should read + in the query string as a space', () => {
+      const req = unsentRequest.fromURL(
+        'https://api.bitbucket.org/2.0/pullrequests?pagelen=50&q=state+%3D+%22OPEN%22&page=2',
+      );
+
+      expect(req.params?.q).toBe('state = "OPEN"');
+      expect(unsentRequest.toURL(req)).toBe(
+        'https://api.bitbucket.org/2.0/pullrequests?pagelen=50&q=state%20%3D%20%22OPEN%22&page=2',
+      );
+    });
+
+    it('should keep an encoded plus as a plus', () => {
+      const req = unsentRequest.fromURL('https://example.com/search?q=1%2B1');
+
+      expect(req.params?.q).toBe('1+1');
+      expect(unsentRequest.toURL(req)).toBe('https://example.com/search?q=1%2B1');
+    });
+  });
 });
