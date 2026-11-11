@@ -145,3 +145,42 @@ describe('Authenticator', () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe('Authenticator popup messages', () => {
+  const success = 'authorization:github:success:{"token":"abc"}';
+
+  it('answers the handshake from the origin of a base_url that has a path', () => {
+    const authenticator = new Authenticator({ base_url: 'https://auth.example.com/oauth/' });
+    authenticator.authWindow = { postMessage: vi.fn() } as any;
+    const handler = authenticator.handshakeCallback({ provider: 'github' } as any, vi.fn()) as any;
+
+    handler({ origin: 'https://auth.example.com', data: 'authorizing:github' });
+
+    expect(authenticator.authWindow!.postMessage).toHaveBeenCalledWith(
+      'authorizing:github',
+      'https://auth.example.com',
+    );
+  });
+
+  it('accepts the token from the origin of a base_url that has a path', () => {
+    const authenticator = new Authenticator({ base_url: 'https://auth.example.com/oauth' });
+    authenticator.authWindow = { close: vi.fn() } as any;
+    const cb = vi.fn();
+    const handler = authenticator.authorizeCallback({ provider: 'github' } as any, cb) as any;
+
+    handler({ origin: 'https://auth.example.com', data: success });
+
+    expect(cb).toHaveBeenCalledWith(null, { token: 'abc' });
+  });
+
+  it('ignores messages from other origins', () => {
+    const authenticator = new Authenticator({ base_url: 'https://auth.example.com/oauth' });
+    authenticator.authWindow = { close: vi.fn() } as any;
+    const cb = vi.fn();
+    const handler = authenticator.authorizeCallback({ provider: 'github' } as any, cb) as any;
+
+    handler({ origin: 'https://other.example.com', data: success });
+
+    expect(cb).not.toHaveBeenCalled();
+  });
+});

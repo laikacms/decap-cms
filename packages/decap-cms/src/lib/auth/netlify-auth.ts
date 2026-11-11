@@ -74,15 +74,27 @@ export interface NetlifyAuthResult {
 export type NetlifyAuthCallback = (error: NetlifyError | null, data?: NetlifyAuthResult) => void;
 export type NetlifyRefreshCallback = (error: NetlifyError | null, data?: NetlifyAuthResult) => void;
 
+function getOrigin(url: string): string {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return url;
+  }
+}
+
 class Authenticator {
   site_id: string | null;
   base_url: string;
+  // Messages from the auth popup carry only the origin, without any path the
+  // configured base_url has.
+  base_origin: string;
   auth_endpoint: string;
   authWindow: Window | null = null;
 
   constructor(config: NetlifyAuthenticatorConfig = {}) {
     this.site_id = config.site_id || null;
     this.base_url = trimEnd(config.base_url, '/') || NETLIFY_API;
+    this.base_origin = getOrigin(this.base_url);
     this.auth_endpoint = trim(config.auth_endpoint, '/') || AUTH_ENDPOINT;
   }
 
@@ -91,7 +103,7 @@ class Authenticator {
     cb: NetlifyAuthCallback,
   ): (e: MessageEvent) => void {
     const fn = (e: MessageEvent): void => {
-      if (e.data === 'authorizing:' + options.provider && e.origin === this.base_url) {
+      if (e.data === 'authorizing:' + options.provider && e.origin === this.base_origin) {
         window.removeEventListener('message', fn, false);
         window.addEventListener('message', this.authorizeCallback(options, cb), false);
         return this.authWindow?.postMessage(e.data, e.origin);
@@ -105,7 +117,7 @@ class Authenticator {
     cb: NetlifyAuthCallback,
   ): (e: MessageEvent) => void {
     const fn = (e: MessageEvent): void => {
-      if (e.origin !== this.base_url) {
+      if (e.origin !== this.base_origin) {
         return;
       }
 

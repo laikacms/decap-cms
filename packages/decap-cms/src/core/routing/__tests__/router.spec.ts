@@ -136,6 +136,15 @@ describe('router', () => {
       });
     });
 
+    it('parses a nested entry slug from a legacy edit URL', () => {
+      expect(defaultRoutingTable.editRedirect.get('/edit/pages/about/index')).toEqual({
+        collectionName: 'pages',
+        slug: 'about/index',
+      });
+      const path = defaultRoutingTable.editRedirect.create({ collectionName: 'pages', slug: 'about/index' });
+      expect(defaultRoutingTable.editRedirect.get(path)).toEqual({ collectionName: 'pages', slug: 'about/index' });
+    });
+
     it('round-trips the media route (DCMS-578)', () => {
       const path = defaultRoutingTable.media.create();
       expect(path).toBe('/media');
