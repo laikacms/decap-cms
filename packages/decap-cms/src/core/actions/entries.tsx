@@ -1038,10 +1038,23 @@ export function persistEntry(collection: Collection) {
           }),
         );
 
-        if (assetProxies.length > 0) {
-          await dispatch(loadMedia());
-        }
+        // Release the editor as soon as the entry is committed: entryPersisted
+        // clears `isPersisting` (the save button's spinner and the
+        // unsaved-changes guard). Dispatched after the media library reload
+        // below, a save with media held the editor busy through a refresh of
+        // a panel that isn't on screen. What follows refreshes views the
+        // editor is not waiting on.
         dispatch(entryPersisted(collection, serializedEntry, newSlug));
+
+        // Not awaited, for the same reason. loadMedia handles its own
+        // failures (it dispatches mediaLoadFailed); the catch only keeps an
+        // unexpected rejection from surfacing as an unhandled one, and never
+        // as a failed save, because the save succeeded.
+        if (assetProxies.length > 0) {
+          Promise.resolve(dispatch(loadMedia())).catch((error: unknown) => {
+            console.error('Failed to reload the media library after saving', error);
+          });
+        }
         // Also refreshes relation widget search results, which share the
         // collection tag (DCMS-606).
         queryCore.invalidateTags([

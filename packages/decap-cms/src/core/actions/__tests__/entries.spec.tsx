@@ -18,6 +18,7 @@ import { FOLDER } from '@/core/constants/collectionTypes';
 import * as backendModule from '@/core/backend';
 import * as entriesReducer from '@/core/reducers/entries';
 import * as entryDraftReducer from '@/core/reducers/entryDraft';
+import * as mediaLibraryActions from '@/core/actions/mediaLibrary';
 import AssetProxy from '@/core/valueObjects/AssetProxy';
 import * as assetProxyModule from '@/core/valueObjects/AssetProxy';
 
@@ -527,6 +528,69 @@ describe('entries', () => {
   });
 
   // DCMS-1422 (partial): `unique: true` field option validated at save time.
+  describe('persistEntry - media library reload', () => {
+    const collection = {
+      name: 'posts',
+      type: FOLDER,
+      folder: 'content',
+      fields: [{ name: 'title', widget: 'string' }],
+    };
+    const currentBackend = vi.mocked(backendModule.currentBackend);
+    const selectPublishedSlugs = vi.mocked(entriesReducer.selectPublishedSlugs);
+    const loadMedia = vi.mocked(mediaLibraryActions.loadMedia);
+
+    function storeWithDraft(mediaFiles: unknown[] = []) {
+      return mockStore({
+        config: {},
+        entries: {},
+        collections: { posts: collection },
+        entryDraft: {
+          entry: { slug: 'hello', path: 'content/hello.md', data: { title: 'Hello' }, mediaFiles },
+          fieldsErrors: {},
+        },
+        mediaLibrary: { files: [] },
+      });
+    }
+
+    function typesOf(store: ReturnType<typeof mockStore>) {
+      return store.getActions().map((action: any) => action.type);
+    }
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      selectPublishedSlugs.mockReturnValue([]);
+      loadMedia.mockReturnValue({ type: 'MEDIA_LOAD_SUCCESS' } as never);
+    });
+
+    it('releases the editor before reloading the media library', async () => {
+      currentBackend.mockReturnValue({ persistEntry: vi.fn().mockResolvedValue('hello'), implementation: {} } as never);
+
+      const store = storeWithDraft([{ path: 'static/img/a.png', draft: true, file: new File([''], 'a.png') }]);
+      await store.dispatch(persistEntry(collection as never) as never);
+
+      // Asserted, so a fixture that stopped producing asset proxies cannot
+      // make the ordering check below vacuous.
+      expect(loadMedia).toHaveBeenCalled();
+      const types = typesOf(store);
+      expect(types.indexOf('ENTRY_PERSIST_SUCCESS')).toBeGreaterThanOrEqual(0);
+      expect(types.indexOf('ENTRY_PERSIST_SUCCESS')).toBeLessThan(types.indexOf('MEDIA_LOAD_SUCCESS'));
+    });
+
+    it('does not release the editor when the commit fails', async () => {
+      currentBackend.mockReturnValue(
+        { persistEntry: vi.fn().mockRejectedValue(new Error('conflict')), implementation: {} } as never,
+      );
+
+      const store = storeWithDraft();
+      await expect(store.dispatch(persistEntry(collection as never) as never)).rejects.toBeDefined();
+
+      const types = typesOf(store);
+      expect(types).toContain('ENTRY_PERSIST_FAILURE');
+      expect(types).not.toContain('ENTRY_PERSIST_SUCCESS');
+      expect(loadMedia).not.toHaveBeenCalled();
+    });
+  });
+
   describe('persistEntry - unique field validation', () => {
     const collection = {
       name: 'posts',
