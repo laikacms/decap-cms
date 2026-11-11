@@ -9,8 +9,21 @@ interface FileLinkProps {
   className?: string;
 }
 
+// Media that isn't saved yet is served from a `blob:` URL, which belongs to the
+// CMS origin. Opened as a page, an SVG there runs its scripts with access to
+// the CMS's storage, including the signed-in user's token, so download it.
+function isLocalObjectUrl(href: string) {
+  return /^(blob|data):/i.test(String(href));
+}
+
 const FileLink = styled(({ href, path, className }: FileLinkProps) => (
-  <a href={href} rel="noopener noreferrer" target="_blank" className={className}>
+  <a
+    href={href}
+    rel="noopener noreferrer"
+    target="_blank"
+    download={isLocalObjectUrl(href) ? String(path).split('/').pop() : undefined}
+    className={className}
+  >
     {path}
   </a>
 ))`
