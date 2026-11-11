@@ -276,6 +276,10 @@
       "types": "./dist/lib/domain/index.d.ts",
       "import": "./dist/lib/domain/index.js"
     },
+    "./lib/turbo": {
+      "types": "./dist/lib/turbo/index.d.ts",
+      "import": "./dist/lib/turbo/index.js"
+    },
     "./lib/util": {
       "types": "./dist/lib/util/index.d.ts",
       "import": "./dist/lib/util/index.js"
