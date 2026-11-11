@@ -131,6 +131,11 @@ export default function DateTimeControl({
   hintId,
 }: DateTimeControlProps) {
   const isUtc = field.picker_utc || false;
+  // While the input has focus it shows what the user typed rather than the
+  // re-formatted stored value: typing a year one digit at a time passes
+  // through values like `0002-08-03`, and re-formatting those rewrote the
+  // year under the cursor.
+  const [inputValue, setInputValue] = React.useState<string | null>(null);
 
   function isValidDate(dt: string) {
     return dayjs(dt, getFormat(field, isUtc).inputFormat).isValid() || dt === '';
@@ -200,10 +205,19 @@ export default function DateTimeControl({
         id={forID}
         data-testid={forID}
         type={inputType}
-        value={value ? formatInputValue(value) : ''}
-        onChange={e => handleChange(e.target.value)}
-        onFocus={setActiveStyle as React.FocusEventHandler<HTMLInputElement>}
-        onBlur={setInactiveStyle as React.FocusEventHandler<HTMLInputElement>}
+        value={inputValue ?? (value ? formatInputValue(value) : '')}
+        onChange={e => {
+          setInputValue(e.target.value);
+          handleChange(e.target.value);
+        }}
+        onFocus={e => {
+          setInputValue(e.target.value);
+          setActiveStyle();
+        }}
+        onBlur={() => {
+          setInputValue(null);
+          setInactiveStyle();
+        }}
         disabled={isDisabled}
         aria-required={field.required !== false}
         aria-invalid={hasErrors || undefined}
