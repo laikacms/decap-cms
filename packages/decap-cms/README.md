@@ -111,7 +111,7 @@ collections:
 A CDN URL works too, if you'd rather not depend on the path to `node_modules`:
 
 ```yaml
-# yaml-language-server: $schema=https://unpkg.com/decap-cms/schema/config.schema.json
+# yaml-language-server: $schema=https://cdn.jsdelivr.net/npm/decap-cms/schema/config.schema.json
 ```
 
 This schema is hand-maintained to mirror the structural shape of the runtime validator
