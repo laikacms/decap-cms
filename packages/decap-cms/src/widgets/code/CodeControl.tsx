@@ -90,6 +90,13 @@ function getKeys(
   return { ...defaults, ...keys };
 }
 
+// A code block inside the rich text editor is as tall as its content, so a
+// short snippet does not leave a tall empty box in the middle of the text.
+// The minimum applies only to the standalone code widget.
+export function getMinHeight(isEditorComponent: boolean | undefined): string {
+  return isEditorComponent ? '0' : '300px';
+}
+
 function valueIsMap(
   field: CmsFieldBase & CmsFieldCode,
   isEditorComponent: boolean | undefined,
@@ -116,6 +123,7 @@ export default function CodeControl({
   const cmRef = React.useRef<CodeMirrorEditorRef>(null);
   const keys = React.useMemo(() => getKeys(field, isEditorComponent), [field, isEditorComponent]);
   const isMap = valueIsMap(field, isEditorComponent);
+  const minHeight = getMinHeight(isEditorComponent);
   const allowLanguageSelection = field.allow_language_selection ?? true;
 
   const initialLang = (isMap && value && (value as Record<string, unknown>)?.[keys.lang]) || field.default_language;
@@ -323,7 +331,7 @@ export default function CodeControl({
                 value={(lastKnownValue as string) || ''}
                 theme={theme === 'material' ? materialTheme : undefined}
                 extensions={extensions}
-                minHeight="300px"
+                minHeight={minHeight}
                 autoFocus={isNewEditorComponent}
                 lineNumbers={lineNumbers}
                 onChange={handleChange}
@@ -338,7 +346,7 @@ export default function CodeControl({
             : (
               <div
                 className={css`
-                min-height: 300px;
+                min-height: ${minHeight};
                 border-radius: 0 3px 3px;
                 background: ${theme === 'material' ? materialBackground : 'transparent'};
               `}
