@@ -288,7 +288,7 @@ export default class GitLab implements BackendImplementation {
     return this.refreshedTokenPromise;
   }
 
-  private destroyNotesPolling() {
+  protected destroyNotesPolling() {
     this.pollingManager?.destroy();
     this.pollingManager = undefined;
     this.unwatchNotes.clear();
@@ -414,7 +414,7 @@ export default class GitLab implements BackendImplementation {
   }
 
   // Fetches a single entry.
-  getEntry(path: string) {
+  getEntry(path: string): Promise<BackendEntry> {
     return this.api!.readFile(path).then(data => ({
       file: { path, id: null },
       content: rawContent(data as string),
