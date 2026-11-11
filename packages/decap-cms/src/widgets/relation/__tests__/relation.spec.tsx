@@ -284,6 +284,45 @@ const numberFieldsHits = [
     },
   },
 ];
+const filterListFieldConfig = {
+  name: 'owner',
+  collection: 'owners_collection',
+  display_fields: ['name'],
+  search_fields: ['name'],
+  value_field: 'name',
+  filters: [{ field: 'pets', values: ['cats', 'dogs'] }],
+};
+
+const listFieldHits = [
+  {
+    collection: 'owners_collection',
+    data: {
+      name: 'Owner A',
+      pets: ['cats', 'birds'],
+      years: [2023],
+      household: { pets: ['cats'] },
+      vets: [{ name: 'Dr Smith' }, { name: 'Dr Jones' }],
+    },
+    i18n: { fr: { data: { name: 'Owner A', pets: ['chats', 'oiseaux'] } } },
+  },
+  {
+    collection: 'owners_collection',
+    data: {
+      name: 'Owner B',
+      pets: ['birds'],
+      years: [2024],
+      household: null,
+      vets: [{ name: 'Dr Jones' }],
+    },
+    i18n: { fr: { data: { name: 'Owner B', pets: ['chats'] } } },
+  },
+  {
+    collection: 'owners_collection',
+    data: { name: 'Owner C', pets: ['dogs'], years: [], household: { pets: ['dogs'] }, vets: [] },
+  },
+  { collection: 'owners_collection', data: { name: 'Owner D', pets: [], household: { pets: [] } } },
+];
+
 class RelationController extends React.Component {
   state = {
     value: this.props.value,
@@ -321,6 +360,8 @@ class RelationController extends React.Component {
     let hits = queryHits;
     if (collection === 'numbers_collection') {
       hits = numberFieldsHits;
+    } else if (collection === 'owners_collection') {
+      hits = listFieldHits;
     } else if (file === 'nested_file') {
       hits = nestedFileCollectionHits;
     } else if (file === 'simple_file') {
@@ -353,7 +394,7 @@ class RelationController extends React.Component {
   }
 }
 
-function setup({ field, value, hasErrors, errorListId, onQuickCreateEntry, t, config }) {
+function setup({ field, value, hasErrors, errorListId, onQuickCreateEntry, t, config, locale }: any) {
   let renderArgs;
   const setActiveSpy = vi.fn();
   const setInactiveSpy = vi.fn();
@@ -383,6 +424,7 @@ function setup({ field, value, hasErrors, errorListId, onQuickCreateEntry, t, co
             onQuickCreateEntry={onQuickCreateEntry}
             config={config}
             t={t}
+            locale={locale}
           />
         );
       }}
@@ -917,6 +959,58 @@ describe('Relation widget', () => {
         expect(() => getAllByText(/^Post # (\d{1,2}) post-number-\1$/)).toThrow(Error);
         expect(getAllByText('Deeply nested post post-deeply-nested')).toHaveLength(1);
       });
+    });
+
+    it('should list option hits whose list field contains any of the filter values', async () => {
+      const { getAllByText, queryByText, input } = setup({ field: filterListFieldConfig });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+      await waitFor(() => {
+        expect(getAllByText(/^Owner [A-D]$/)).toHaveLength(2);
+        expect(getAllByText('Owner A')).toHaveLength(1);
+        expect(getAllByText('Owner C')).toHaveLength(1);
+        expect(queryByText('Owner B')).toBeNull();
+        expect(queryByText('Owner D')).toBeNull();
+      });
+    });
+
+    function setupOwners({ filters, locale }: { filters: unknown[], locale?: string }) {
+      const helpers = setup({ field: { ...filterListFieldConfig, filters }, locale });
+      fireEvent.keyDown(helpers.input, { key: 'ArrowDown' });
+      return helpers;
+    }
+
+    async function expectOwners(getAllByText, expected: string[]) {
+      await waitFor(() => {
+        expect(getAllByText(/^Owner [A-D]$/).map(el => el.textContent)).toEqual(expected);
+      });
+    }
+
+    it('should match list fields at a nested path and skip hits with a null parent', async () => {
+      const { getAllByText } = setupOwners({
+        filters: [{ field: 'household.pets', values: ['cats', 'dogs'] }],
+      });
+      await expectOwners(getAllByText, ['Owner A', 'Owner C']);
+    });
+
+    it('should match lists of objects using a wildcard path', async () => {
+      const { getAllByText } = setupOwners({ filters: [{ field: 'vets.*.name', values: ['Dr Jones'] }] });
+      await expectOwners(getAllByText, ['Owner A', 'Owner B']);
+    });
+
+    it('should match list items regardless of string or number type', async () => {
+      const { getAllByText } = setupOwners({ filters: [{ field: 'years', values: ['2024'] }] });
+      await expectOwners(getAllByText, ['Owner B']);
+    });
+
+    it('should apply filters to the locale specific data', async () => {
+      const { getAllByText } = setupOwners({ filters: [{ field: 'pets', values: ['chats'] }], locale: 'fr' });
+      await expectOwners(getAllByText, ['Owner A', 'Owner B']);
+    });
+
+    it('should apply filters on untranslated fields to the default locale data', async () => {
+      const { getAllByText } = setupOwners({ filters: [{ field: 'years', values: ['2024'] }], locale: 'fr' });
+      await expectOwners(getAllByText, ['Owner B']);
     });
   });
 

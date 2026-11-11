@@ -184,6 +184,21 @@ function relationOptionsKey(
   return `relation-options/${collection}/${searchFields.join(',')}/${term || ''}/${file || ''}`;
 }
 
+function isFilterMatch(data: Record<string, unknown>, filter: FilterObj): boolean {
+  // Resolve wildcard paths the same way as value_field; a list field matches
+  // when any of its items is in the filter values.
+  const values = stringTemplate.expandPath({ data, path: filter.field }).flatMap(path => {
+    const value = get(data, path);
+    return Array.isArray(value) ? value : [value];
+  });
+  // Compare as strings: entry data may be parsed as numbers or booleans while
+  // filter values are strings, and vice versa.
+  const filterValues = filter.values.map(String);
+  return values.some(
+    value => value != null && typeof value !== 'object' && filterValues.includes(String(value)),
+  );
+}
+
 function getSelectedValue({
   value,
   options,
@@ -289,10 +304,15 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       return v !== undefined && v !== null && v !== '';
     }
 
+    function getHitData(hit: Hit): Record<string, unknown> {
+      const localeData = locale != null ? hit.i18n?.[locale]?.data : null;
+      // A translation only has its translatable fields, so fall back to the
+      // default locale for the rest (e.g. a filter on an `i18n: none` field).
+      return localeData ? { ...hit.data, ...localeData } : hit.data;
+    }
+
     function parseNestedFields(hit: Hit, fieldName: string): string {
-      const hitData = locale != null && hit.i18n != null && hit.i18n[locale] != null
-        ? hit.i18n[locale].data
-        : hit.data;
+      const hitData = getHitData(hit);
       const templateVars = stringTemplate.extractTemplateVars(fieldName);
       if (templateVars.length <= 0) {
         return get(hitData, fieldName) as string;
@@ -310,21 +330,8 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       const filters = getFieldArray(field.filters);
 
       return hits.reduce((acc: RelationOption[], hit: Hit) => {
-        if (
-          filters.every((filter: unknown) => {
-            const filterObj = filter as FilterObj;
-            const fieldKeys = filterObj.field.split('.');
-            let v: unknown = hit.data;
-            for (let i = 0; i < fieldKeys.length; i++) {
-              if (Object.prototype.hasOwnProperty.call(v, fieldKeys[i])) {
-                v = (v as Record<string, unknown>)[fieldKeys[i]];
-              } else {
-                return false;
-              }
-            }
-            return filterObj.values.includes(v);
-          })
-        ) {
+        const hitData = getHitData(hit);
+        if (filters.every((filter: unknown) => isFilterMatch(hitData, filter as FilterObj))) {
           const valuesPaths = stringTemplate.expandPath({ data: hit.data, path: valueField });
           for (let i = 0; i < valuesPaths.length; i++) {
             const label = displayField
