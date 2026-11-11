@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 import API from '@/backends/github/API';
 import { formatNoteBody } from '@/lib/backend/index';
 
+vi.mock('@/ui', () => ({ showAlert: vi.fn() }));
+
 global.fetch = vi.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
 
 describe('github API', () => {
@@ -982,6 +984,39 @@ describe('github API', () => {
 
       expect(notes.map(note => note.id)).toEqual(['1', '3']);
       expect(notes[0].issueUrl).toBe('https://issue');
+    });
+  });
+
+  describe('listUnpublishedBranches', () => {
+    function pullRequest(ref: string, labels: string[]) {
+      return { head: { ref, repo: { fork: false } }, labels: labels.map(name => ({ name })) };
+    }
+
+    it('reads the open pull request list once when nothing needs migrating', async () => {
+      const api = new API({ branch: 'main', repo: 'owner/repo', cmsLabelPrefix: 'decap-cms/' } as any);
+      api.requestAllPages = vi
+        .fn()
+        .mockResolvedValue([pullRequest('cms/posts/a-post', ['decap-cms/pending_review'])]) as any;
+
+      await expect(api.listUnpublishedBranches()).resolves.toEqual(['cms/posts/a-post']);
+
+      // The labelled and unlabelled sets are two filters over the same page,
+      // so asking for both must not cost two identical round trips.
+      expect(api.requestAllPages).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-reads the list after a migration, because migrating is what adds the label', async () => {
+      const api = new API({ branch: 'main', repo: 'owner/repo', cmsLabelPrefix: 'decap-cms/' } as any);
+      api.requestAllPages = vi
+        .fn()
+        .mockResolvedValueOnce([pullRequest('cms/posts/legacy', [])])
+        .mockResolvedValueOnce([pullRequest('cms/posts/legacy', ['decap-cms/draft'])]) as any;
+      api.migratePullRequest = vi.fn().mockResolvedValue(undefined) as any;
+
+      await expect(api.listUnpublishedBranches()).resolves.toEqual(['cms/posts/legacy']);
+
+      expect(api.migratePullRequest).toHaveBeenCalledTimes(1);
+      expect(api.requestAllPages).toHaveBeenCalledTimes(2);
     });
   });
 });

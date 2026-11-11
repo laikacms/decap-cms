@@ -788,19 +788,24 @@ export default class API {
       );
       branches = branchesWithFilter.filter(b => b.filter).map(b => b.branch);
     } else {
-      // backwards compatibility code, get relevant pull requests and migrate them
-      const pullRequests = await this.getPullRequests(
-        undefined,
-        PullRequestState.Open,
+      // One fetch, two filters: both predicates below used to be separate
+      // getPullRequests calls with the same head/state, so every collection
+      // load sent the same `GET /pulls` twice. The predicate is applied
+      // client-side anyway.
+      const openPullRequests = await this.getPullRequests(undefined, PullRequestState.Open, () => true);
+
+      // Backwards compatibility: entries created before the CMS labelled its
+      // pull requests get migrated.
+      const unlabeled = openPullRequests.filter(
         pr => !pr.head.repo.fork && withoutCmsLabel(pr, this.cmsLabelPrefix),
       );
       let prCount = 0;
-      for (const pr of pullRequests) {
+      for (const pr of unlabeled) {
         if (!migrationNotified) {
           migrationNotified = true;
           showAlert(
             oneLine`
-            Decap CMS is adding labels to ${pullRequests.length} of your Editorial Workflow
+            Decap CMS is adding labels to ${unlabeled.length} of your Editorial Workflow
             entries. The "Workflow" tab will be unavailable during this migration. You may use other
             areas of the CMS during this time. Note that closing the CMS will pause the migration.
           `,
@@ -808,13 +813,14 @@ export default class API {
           );
         }
         prCount = prCount + 1;
-        await this.migratePullRequest(pr, `${prCount} of ${pullRequests.length}`);
+        await this.migratePullRequest(pr, `${prCount} of ${unlabeled.length}`);
       }
-      const cmsPullRequests = await this.getPullRequests(
-        undefined,
-        PullRequestState.Open,
-        pr => withCmsLabel(pr, this.cmsLabelPrefix),
-      );
+
+      // Migrating is what adds the labels, so when it ran the list fetched
+      // above is out of date and is read again.
+      const cmsPullRequests = unlabeled.length
+        ? await this.getPullRequests(undefined, PullRequestState.Open, pr => withCmsLabel(pr, this.cmsLabelPrefix))
+        : openPullRequests.filter(pr => withCmsLabel(pr, this.cmsLabelPrefix));
       branches = cmsPullRequests.map(pr => pr.head.ref);
     }
 
