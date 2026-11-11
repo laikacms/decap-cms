@@ -47,6 +47,7 @@ for usage, visual editing, and the config JSON Schema.
 
 ```
 packages/
+  decap/               @decap/cli, the `decap` command (dev server, Turbo commands, MCP)
   decap-cms/           the published decap-cms package (source, tests, demo, build)
 extensions/            reserved for packages that consume decap-cms as a third party (none yet)
 docs/

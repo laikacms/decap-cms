@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "noEmit": true,
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "types": ["node"],
+    // The decap-cms dev server has one .tsx file (no JSX in it).
+    "jsx": "react-jsx",
+    // `decap dev` runs v4's dev server from the decap-cms source, which
+    // esbuild bundles into dist/ (see scripts/build.mjs and README.md). The
+    // `@/*` entry only exists so the decap-cms files resolve their own alias;
+    // the CLI's sources must not use it (enforced in eslint.config.mjs).
+    "paths": {
+      "decap-cms/dev-server": ["../decap-cms/src/dev-server/index.ts"],
+      "@/*": ["../decap-cms/src/*"]
+    }
+  },
+  "include": ["src/**/*", "scripts/**/*", "*.ts", "*.mjs"]
+}
