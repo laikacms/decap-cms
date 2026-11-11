@@ -91,6 +91,9 @@ const SOURCES: Record<string, SourceInfo> = {
   github: { textKey: 'editor.editorNotesPane.viewInGitHub', iconType: 'github' },
   gitlab: { textKey: 'editor.editorNotesPane.viewInGitLab', iconType: 'gitlab' },
 };
+// Decap Turbo keeps notes on the same hosts.
+SOURCES['turbo-github'] = SOURCES.github!;
+SOURCES['turbo-gitlab'] = SOURCES.gitlab!;
 
 const GENERIC_SOURCE: SourceInfo = { textKey: 'editor.editorNotesPane.viewSource', iconType: 'link' };
 

@@ -42,6 +42,8 @@ describe('EditorNotesPane (decaporg #7563)', () => {
 
   it('labels the thread link by backend, then by host', () => {
     expect(getSourceInfo('https://example.com/x', 'github').iconType).toBe('github');
+    expect(getSourceInfo('https://example.com/x', 'turbo-github').iconType).toBe('github');
+    expect(getSourceInfo('https://example.com/x', 'turbo-gitlab').iconType).toBe('gitlab');
     expect(getSourceInfo('https://gitlab.com/o/r/-/merge_requests/1', undefined).iconType).toBe('gitlab');
     expect(getSourceInfo('https://code.github.com/o/r/pull/1', undefined).iconType).toBe('github');
     expect(getSourceInfo('https://github.com.evil.example/x', undefined).iconType).toBe('link');
