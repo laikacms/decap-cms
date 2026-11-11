@@ -1,7 +1,6 @@
 {
   "name": "@decap/cli",
   "version": "0.2.0-beta.0",
-  "private": true,
   "description": "The Decap command line: run the local proxy server for the CMS, manage Decap Turbo from your terminal, and connect AI agents to it over MCP",
   "license": "MIT",
   "homepage": "https://github.com/decaporg/decap-cms/tree/main/packages/decap",
@@ -66,5 +65,8 @@
     "typescript": "catalog:",
     "typescript-eslint": "catalog:",
     "vitest": "catalog:"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

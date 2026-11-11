@@ -11,7 +11,7 @@ they can never do more than you can in the dashboard.
 > an exact version in scripts and CI.
 
 This is the v4 port of upstream's `packages/decap` (published there as `@decap/cli`). It needs Node
-24, like the rest of this repository. The package is `private` here until publishing it is decided.
+24, like the rest of this repository. Published publicly as `@decap/cli`, as upstream is.
 
 ## Local development: `decap dev`
 
