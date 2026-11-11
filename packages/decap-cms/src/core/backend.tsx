@@ -44,7 +44,7 @@ import {
   hasI18n,
   I18N_STRUCTURE,
 } from './lib/i18n';
-import { getBackend, invokeEvent } from './lib/registry';
+import { getBackend, getEditorApi, invokeEvent, registerFieldAction } from './lib/registry';
 import { sanitizeChar } from './lib/urlHelper';
 import {
   selectAllowDeletion,
@@ -691,6 +691,14 @@ export class Backend {
       throw new Error('Cannot instantiate a Backend with no implementation');
     }
     this.backupSync = asyncLock();
+
+    // Optional, duck-typed: a backend that works with the open entry (the
+    // Decap Turbo editor bridge) receives the editor API and the field-action
+    // registry here, so it needs no dependency on core.
+    const editor = getEditorApi();
+    if (editor && typeof this.implementation.attachEditor === 'function') {
+      this.implementation.attachEditor({ editor, registerFieldAction });
+    }
   }
 
   async status() {

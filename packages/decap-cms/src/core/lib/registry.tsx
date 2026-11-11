@@ -7,8 +7,10 @@ import type { BackendClass } from '@/lib/backend/index';
 import type {
   CmsAllowedEvent,
   CmsConfig,
+  CmsEditorApi,
   CmsEntryCodec,
   CmsEventName,
+  CmsFieldAction,
   CmsFormatter,
   CmsFormatterFunctions,
   CmsLocaleAction,
@@ -55,6 +57,9 @@ interface Registry {
   eventHandlers: Record<CmsEventName, EventHandler[]>;
   formats: Record<string, CmsFormatter>;
   entryCodecs: CmsEntryCodec[];
+  fieldActions: CmsFieldAction[];
+  /** Set by `core/index`, read by `core/backend`: importing the editor API there would cycle. */
+  editorApi: CmsEditorApi | null;
 }
 
 // Exported so `src/core/README.md`'s documented event lists can be pinned
@@ -108,6 +113,8 @@ const registry: Registry = {
   eventHandlers,
   formats: {},
   entryCodecs: [],
+  fieldActions: [],
+  editorApi: null,
 };
 
 export default {
@@ -150,6 +157,8 @@ export default {
   registerEntryCodec,
   getEntryCodecs,
   getEntryCodec,
+  registerFieldAction,
+  getFieldActions,
 };
 
 /**
@@ -281,6 +290,35 @@ export function registerBackend(name: string, BackendClass: BackendClass) {
 
 export function getBackend(name: string) {
   return registry.backends[name];
+}
+
+/**
+ * Field actions (experimental: may change or go away in any release, minor and
+ * patch included). Buttons beside each top-level field's label in the editor;
+ * an action is called with plain values, never the editor's internals.
+ * Registering an id again replaces the earlier action.
+ */
+export function registerFieldAction(action: CmsFieldAction) {
+  if (!action || typeof action.id !== 'string' || typeof action.label !== 'string') {
+    throw new Error('registerFieldAction needs an id and a label.');
+  }
+  if (typeof action.onClick !== 'function') {
+    throw new Error(`Field action "${action.id}" needs an onClick function.`);
+  }
+  registry.fieldActions = [...registry.fieldActions.filter(a => a.id !== action.id), action];
+}
+
+/** The same array until the next registration, so it is safe as a prop. */
+export function getFieldActions() {
+  return registry.fieldActions;
+}
+
+export function setEditorApi(editorApi: CmsEditorApi | null) {
+  registry.editorApi = editorApi;
+}
+
+export function getEditorApi() {
+  return registry.editorApi;
 }
 
 /**

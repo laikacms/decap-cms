@@ -11,7 +11,7 @@ import {
   isFieldHidden,
   isFieldTranslatable,
 } from '@/core/lib/i18n';
-import { getLocaleActions } from '@/core/lib/registry';
+import { getFieldActions, getLocaleActions } from '@/core/lib/registry';
 import { confirmDialog } from '@/ui';
 import { buttons, colors, Dropdown, DropdownItem, StyledDropdownButton, text } from '@/ui/default/index';
 import EditorControl from './EditorControl';
@@ -116,6 +116,12 @@ interface ControlPaneProps {
   fields: EntryField[];
   fieldsMetaData: Record<string, Record<string, unknown>>;
   fieldsErrors: Record<string, { type: string, message: string }[]>;
+  /**
+   * Fields changed from outside the editor (`core/lib/editorApi`): a new
+   * revision remounts the control, a highlight marks it for a moment.
+   */
+  fieldRevisions?: Record<string, number> | undefined;
+  fieldHighlights?: Record<string, boolean> | undefined;
   onChange: (
     field: EntryField,
     value: unknown,
@@ -136,9 +142,13 @@ export interface ControlPaneHandle {
 
 const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(
   function ControlPane(props, ref) {
-    const { collection, entry, fields, fieldsMetaData, fieldsErrors, onValidate, t } = props;
+    const { collection, entry, fields, fieldsMetaData, fieldsErrors, fieldRevisions, fieldHighlights, onValidate, t } =
+      props;
 
     const [selectedLocale, setSelectedLocale] = React.useState<string | undefined>(props.locale);
+    // Actions extensions add beside each top-level field's label
+    // (registerFieldAction). Only top-level: nested controls get none.
+    const fieldActions = getFieldActions();
     const childRefs = React.useRef<Record<string, unknown>>({});
 
     function controlRef(field: EntryField, wrappedControl: unknown) {
@@ -363,7 +373,11 @@ const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(
             const isTranslatable = isFieldTranslatable(field, locale ?? '', defaultLocale);
             const isDuplicate = isFieldDuplicate(field, locale ?? '', defaultLocale);
             const isHidden = isFieldHidden(field, locale ?? '', defaultLocale);
-            const key = i18n ? `${locale}_${i}` : i;
+            // A field changed from outside the editor gets a new key, so its
+            // widget remounts and shows the new value: the richtext editor
+            // only reads its value on mount.
+            const revision = fieldRevisions?.[field.name] ?? 0;
+            const key = `${i18n ? `${locale}_${i}` : i}_${revision}`;
 
             return (
               <EditorControl
@@ -382,6 +396,8 @@ const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(
                 isFieldDuplicate={isFieldDuplicateForLocale}
                 isFieldHidden={isFieldHiddenForLocale}
                 locale={locale}
+                isHighlighted={Boolean(fieldHighlights?.[field.name])}
+                fieldActions={fieldActions}
               />
             );
           })}

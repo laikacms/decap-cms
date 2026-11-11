@@ -304,6 +304,8 @@ interface EditorInterfaceProps {
   fields: EntryField[];
   fieldsMetaData: Record<string, Record<string, unknown>>;
   fieldsErrors: Record<string, { type: string, message: string }[]>;
+  fieldRevisions?: Record<string, number> | undefined;
+  fieldHighlights?: Record<string, boolean> | undefined;
   onChange: (field: EntryField, value: unknown, metadata?: unknown, i18n?: unknown) => void;
   onValidate: (fieldName: string, errors: { type: string, message: string }[]) => void;
   onPersist: (opts?: { createNew?: boolean, duplicate?: boolean }) => void;
@@ -350,6 +352,8 @@ function EditorInterface(props: EditorInterfaceProps) {
     fields,
     fieldsMetaData,
     fieldsErrors,
+    fieldRevisions,
+    fieldHighlights,
     onChange,
     onPersist,
     showDelete,
@@ -640,6 +644,8 @@ function EditorInterface(props: EditorInterfaceProps) {
     fields,
     fieldsMetaData,
     fieldsErrors,
+    fieldRevisions,
+    fieldHighlights,
     onChange,
     onValidate,
   };

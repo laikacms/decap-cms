@@ -2,6 +2,7 @@ export * from './backend.js';
 export * from './cms.js';
 export * from './collections.js';
 export * from './common.js';
+export * from './editor.js';
 export * from './entries.js';
 export * from './field.js';
 export * from './fields';

@@ -3,8 +3,10 @@ import type {
   CmsConfig,
   CmsCredentials,
   CmsDisplayURL,
+  CmsEditorApi,
   CmsEntryLock,
   CmsEntryLockOwner,
+  CmsFieldAction,
   CmsGetMediaPageOptions,
   CmsMediaCapabilities,
   CmsMediaPage,
@@ -151,6 +153,12 @@ export interface BackendImplementation {
    * update in place, so core reloads the collection's entries after a save.
    */
   reloadEntriesAfterPersist?: boolean;
+  /**
+   * Experimental (may change or go away in any release): called once with
+   * the editor API (`CMS.editor`) and the field-action registry
+   * (`CMS.registerFieldAction`), for a backend that works with the open entry.
+   */
+  attachEditor?: (args: { editor: CmsEditorApi, registerFieldAction: (action: CmsFieldAction) => void }) => void;
   traverseCursor?: (
     cursor: Cursor,
     action: string,

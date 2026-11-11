@@ -1,4 +1,7 @@
-import Registry from './lib/registry';
+import { editorApi } from './lib/editorApi';
+import Registry, { setEditorApi } from './lib/registry';
+
+setEditorApi(editorApi);
 
 export type * from '@/lib/util/index';
 
@@ -134,5 +137,12 @@ export type { JSONSchema, SchemaError } from './lib/jsonSchemaValidator';
 
 export const DecapCmsCore = {
   ...Registry,
+  /**
+   * The open entry, from outside React: `CMS.editor.getCurrentEntry()`,
+   * `.applyFieldPatch(patches, { locale })` and `.onEditorChange(listener)`.
+   * Experimental: may change or go away in any release, minor and patch
+   * included.
+   */
+  editor: editorApi,
 };
 export default DecapCmsCore;
