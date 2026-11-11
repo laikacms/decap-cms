@@ -33,6 +33,7 @@ import {
 import {
   formatI18nBackup,
   getEntryFilePaths,
+  getFilePath,
   getI18nBackup,
   getI18nDataFiles,
   getI18nEntry,
@@ -744,8 +745,25 @@ export class Backend {
 
     if (unpublishedEntry) return unpublishedEntry;
 
+    // For multiple_files/multiple_folders i18n the entry does not live at
+    // `path` itself but at the localised variants of it, so probing `path`
+    // always misses, and a miss here licenses reusing the slug, which
+    // overwrites the existing entry's files. The default locale is written
+    // for every entry, so one probe still answers the question.
+    let entryPath = path;
+    if (hasI18n(collection)) {
+      const { structure, defaultLocale } = getI18nInfo(collection) as I18nInfo;
+      entryPath = getFilePath(
+        structure as I18N_STRUCTURE,
+        selectFolderEntryExtension(collection),
+        path,
+        slug,
+        defaultLocale,
+      );
+    }
+
     const publishedEntry = await this.implementation
-      .getEntry(path, useWorkflow)
+      .getEntry(entryPath, useWorkflow)
       .then(loaded => contentExists(loaded.content))
       .catch(() => false);
 

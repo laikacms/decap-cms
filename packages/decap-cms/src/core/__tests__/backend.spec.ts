@@ -1134,6 +1134,37 @@ describe('Backend', () => {
       );
     });
 
+    it('should probe the localised path for multiple_files i18n collections', async () => {
+      vi.mocked(sanitizeSlug).mockReturnValue('some-post-title');
+      vi.mocked(sanitizeChar).mockReturnValue('-');
+      const notFound = () => Promise.reject(Object.assign(new Error('Not Found'), { status: 404 }));
+      const implementation = {
+        init: vi.fn(() => implementation),
+        // Only the localised file exists, which is the real shape on disk.
+        getEntry: vi.fn((p: string) =>
+          p === 'posts/some-post-title.en.md'
+            ? Promise.resolve({ file: { path: p }, content: { kind: 'raw', raw: 'data' } })
+            : notFound()
+        ),
+      };
+      const collection = {
+        name: 'posts',
+        fields: [{ name: 'title' }],
+        type: FOLDER,
+        folder: 'posts',
+        slug: '{{slug}}',
+        i18n: { structure: 'multiple_files', locales: ['en', 'de'], default_locale: 'en' },
+      };
+      const backend = new Backend(implementation as any, { config: {}, backendName: 'github' } as any);
+
+      // Probing the unlocalised 'posts/some-post-title.md' would miss, and the
+      // caller would reuse the slug and overwrite the existing entry.
+      await expect(
+        backend.generateUniqueSlug(collection as any, { title: 'some post title' }, {} as any, [], undefined),
+      ).resolves.toBe('some-post-title-1');
+      expect(implementation.getEntry.mock.calls[0][0]).toBe('posts/some-post-title.en.md');
+    });
+
     it('should suffix the slug placeholder before a fixed path filename', async () => {
       vi.mocked(sanitizeSlug).mockReturnValue('some-post-title');
       vi.mocked(sanitizeChar).mockReturnValue('-');
