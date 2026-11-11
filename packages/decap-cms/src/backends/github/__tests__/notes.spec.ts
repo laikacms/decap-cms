@@ -76,13 +76,16 @@ function comment(id: number, body: string, login = 'ada') {
   };
 }
 
-function searchRoute(items: unknown[] | ((q: string) => unknown[])): Route {
+const ISSUES_PATH = `/repos/${REPO}/issues`;
+
+/** The repo's notes issues listing; the function form sees the `state` asked for. */
+function listRoute(items: unknown[] | ((state: string) => unknown[])): Route {
   return {
     method: 'GET',
-    path: '/search/issues',
+    path: ISSUES_PATH,
     reply: ({ url }) => {
-      const q = url.searchParams.get('q')!;
-      return json({ total_count: 0, items: typeof items === 'function' ? items(q) : items });
+      const state = url.searchParams.get('state')!;
+      return json(typeof items === 'function' ? items(state) : items);
     },
   };
 }
@@ -103,8 +106,8 @@ describe('github notes API', () => {
   });
 
   describe('findEntryIssue', () => {
-    it('searches the repo for the labelled issue that names the entry', async () => {
-      const fetchMock = mockFetch([searchRoute([issue(4, 'posts/my-post')])]);
+    it('lists the repo issues with the notes label and picks the one that names the entry', async () => {
+      const fetchMock = mockFetch([listRoute([issue(4, 'posts/my-post')])]);
 
       await expect(newAPI().findEntryIssue('posts', 'my-post')).resolves.toEqual({
         number: 4,
@@ -112,52 +115,70 @@ describe('github notes API', () => {
       });
 
       const [[input, init]] = fetchMock.mock.calls;
-      expect(new URL(String(input)).searchParams.get('q')).toBe(
-        'repo:owner/repo label:decap-cms-notes "posts/my-post" in:body',
-      );
+      const params = new URL(String(input)).searchParams;
+      expect(params.get('labels')).toBe('decap-cms-notes');
+      expect(params.get('state')).toBe('all');
       expect((init!.headers as Record<string, string>).Authorization).toBe('token secret');
     });
 
-    // Search matches the quoted key as a phrase, so a longer slug that starts
-    // the same comes back too - and may rank first.
+    // A longer slug that starts the same is listed too, and may come first.
     it('accepts only the issue whose body names exactly this entry', async () => {
-      mockFetch([searchRoute([issue(5, 'posts/my-post-2'), issue(4, 'posts/my-post')])]);
+      mockFetch([listRoute([issue(5, 'posts/my-post-2'), issue(4, 'posts/my-post')])]);
 
       await expect(newAPI().findEntryIssue('posts', 'my-post')).resolves.toMatchObject({ number: 4 });
     });
 
+    it('pages through the listing and skips pull requests', async () => {
+      const firstPage = Array.from({ length: 100 }, (_, i) => issue(100 + i, `posts/other-${i}`));
+      const fetchMock = mockFetch([
+        {
+          method: 'GET',
+          path: ISSUES_PATH,
+          reply: ({ url }) =>
+            json(
+              url.searchParams.get('page') === '1'
+                ? firstPage
+                : [issue(3, 'posts/my-post', { pull_request: {} }), issue(4, 'posts/my-post')],
+            ),
+        },
+      ]);
+
+      await expect(newAPI().findEntryIssue('posts', 'my-post')).resolves.toMatchObject({ number: 4 });
+      expect(requestsTo(fetchMock, 'GET', ISSUES_PATH)).toHaveLength(2);
+    });
+
     it('answers null when only a lookalike entry has a thread', async () => {
-      mockFetch([searchRoute([issue(5, 'posts/my-post-2')])]);
+      mockFetch([listRoute([issue(5, 'posts/my-post-2')])]);
 
       await expect(newAPI().findEntryIssue('posts', 'my-post')).resolves.toBeNull();
     });
 
-    it('remembers the thread instead of searching again', async () => {
-      const fetchMock = mockFetch([searchRoute([issue(4, 'posts/my-post')])]);
+    it('remembers the thread instead of listing again', async () => {
+      const fetchMock = mockFetch([listRoute([issue(4, 'posts/my-post')])]);
       const api = newAPI();
 
       await api.findEntryIssue('posts', 'my-post');
       await api.findEntryIssue('posts', 'my-post');
 
-      expect(requestsTo(fetchMock, 'GET', '/search/issues')).toHaveLength(1);
+      expect(requestsTo(fetchMock, 'GET', ISSUES_PATH)).toHaveLength(1);
     });
 
     it('forgets remembered threads on reset', async () => {
-      const fetchMock = mockFetch([searchRoute([issue(4, 'posts/my-post')])]);
+      const fetchMock = mockFetch([listRoute([issue(4, 'posts/my-post')])]);
       const api = newAPI();
 
       await api.findEntryIssue('posts', 'my-post');
       api.reset();
       await api.findEntryIssue('posts', 'my-post');
 
-      expect(requestsTo(fetchMock, 'GET', '/search/issues')).toHaveLength(2);
+      expect(requestsTo(fetchMock, 'GET', ISSUES_PATH)).toHaveLength(2);
     });
 
     // Read as "no thread", a failed lookup would make the next note open a
     // second issue for the same entry.
-    it('throws when the search fails instead of answering null', async () => {
+    it('throws when the lookup fails instead of answering null', async () => {
       mockFetch([
-        { method: 'GET', path: '/search/issues', reply: () => json({ message: 'Validation Failed' }, { status: 422 }) },
+        { method: 'GET', path: ISSUES_PATH, reply: () => json({ message: 'Validation Failed' }, { status: 422 }) },
       ]);
 
       await expect(newAPI().findEntryIssue('posts', 'my-post')).rejects.toMatchObject({ status: 422 });
@@ -186,9 +207,9 @@ describe('github notes API', () => {
         body: expect.stringContaining('This issue tracks notes for entry: `posts/my-post`'),
         labels: ['decap-cms-notes', 'collection:posts'],
       });
-      // Search would not see the new issue for a while; the next lookup must.
+      // The next lookup finds the new issue without listing again.
       await expect(api.findEntryIssue('posts', 'my-post')).resolves.toMatchObject({ number: 9 });
-      expect(requestsTo(fetchMock, 'GET', '/search/issues')).toHaveLength(0);
+      expect(requestsTo(fetchMock, 'GET', ISSUES_PATH)).toHaveLength(0);
     });
 
     it('falls back to collection/slug for the title', async () => {
@@ -327,7 +348,7 @@ describe('github notes API', () => {
 
   describe('getEntryNotes', () => {
     it('has no notes when the entry has no thread', async () => {
-      const fetchMock = mockFetch([searchRoute([])]);
+      const fetchMock = mockFetch([listRoute([])]);
 
       await expect(newAPI().getEntryNotes('posts', 'my-post')).resolves.toEqual([]);
       expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -335,7 +356,7 @@ describe('github notes API', () => {
 
     it('reads each comment as a note linked to the thread', async () => {
       mockFetch([
-        searchRoute([issue(4, 'posts/my-post')]),
+        listRoute([issue(4, 'posts/my-post')]),
         {
           method: 'GET',
           path: `/repos/${REPO}/issues/4/comments`,
@@ -367,7 +388,7 @@ describe('github notes API', () => {
 
     it('propagates a failed read', async () => {
       mockFetch([
-        { method: 'GET', path: '/search/issues', reply: () => json({ message: 'Server Error' }, { status: 500 }) },
+        { method: 'GET', path: ISSUES_PATH, reply: () => json({ message: 'Server Error' }, { status: 500 }) },
       ]);
 
       await expect(newAPI().getEntryNotes('posts', 'my-post')).rejects.toThrow('Server Error');
@@ -387,7 +408,7 @@ describe('github notes API', () => {
     it('posts the note on the existing thread', async () => {
       let posted: any;
       const fetchMock = mockFetch([
-        searchRoute([issue(4, 'posts/my-post')]),
+        listRoute([issue(4, 'posts/my-post')]),
         {
           method: 'POST',
           path: `/repos/${REPO}/issues/4/comments`,
@@ -409,7 +430,7 @@ describe('github notes API', () => {
     it("opens the thread for the entry's first note", async () => {
       let created: any;
       mockFetch([
-        searchRoute([]),
+        listRoute([]),
         {
           method: 'POST',
           path: `/repos/${REPO}/issues`,
@@ -434,8 +455,8 @@ describe('github notes API', () => {
 
     it('posts a second note to the thread the first one opened', async () => {
       const fetchMock = mockFetch([
-        // Search has not indexed the new issue yet.
-        searchRoute([]),
+        // The listing does not include the new issue yet.
+        listRoute([]),
         {
           method: 'POST',
           path: `/repos/${REPO}/issues`,
@@ -458,7 +479,7 @@ describe('github notes API', () => {
 
     it('opens no thread when the lookup fails', async () => {
       const fetchMock = mockFetch([
-        { method: 'GET', path: '/search/issues', reply: () => json({ message: 'Server Error' }, { status: 500 }) },
+        { method: 'GET', path: ISSUES_PATH, reply: () => json({ message: 'Server Error' }, { status: 500 }) },
       ]);
 
       await expect(newAPI().addNoteToEntry('posts', 'my-post', note)).rejects.toMatchObject({
@@ -559,8 +580,8 @@ describe('github notes API', () => {
       let query = '';
       let patched: any;
       const fetchMock = mockFetch([
-        searchRoute(q => {
-          query = q;
+        listRoute(state => {
+          query = state;
           return [issue(4, 'posts/my-post')];
         }),
         patchRoute(body => (patched = body)),
@@ -568,7 +589,7 @@ describe('github notes API', () => {
 
       await newAPI().closeIssueOnPublish('posts', 'my-post');
 
-      expect(query).toBe('repo:owner/repo label:decap-cms-notes "posts/my-post" in:body state:open');
+      expect(query).toBe('open');
       expect(patched).toEqual({
         state: 'closed',
         labels: ['decap-cms-notes', 'collection:posts', 'entry-published'],
@@ -579,7 +600,7 @@ describe('github notes API', () => {
     it('does not repeat a label the thread already has', async () => {
       let patched: any;
       mockFetch([
-        searchRoute([
+        listRoute([
           issue(4, 'posts/my-post', {
             labels: [{ name: 'decap-cms-notes', color: '' }, { name: 'entry-published', color: '' }],
           }),
@@ -594,7 +615,7 @@ describe('github notes API', () => {
 
     it('closes the thread when the entry is deleted', async () => {
       let patched: any;
-      mockFetch([searchRoute([issue(4, 'posts/my-post')]), patchRoute(body => (patched = body))]);
+      mockFetch([listRoute([issue(4, 'posts/my-post')]), patchRoute(body => (patched = body))]);
 
       await newAPI().closeEntryNotesIssue('posts', 'my-post');
 
@@ -608,8 +629,8 @@ describe('github notes API', () => {
       let query = '';
       let patched: any;
       mockFetch([
-        searchRoute(q => {
-          query = q;
+        listRoute(state => {
+          query = state;
           return [
             issue(4, 'posts/my-post', {
               state: 'closed',
@@ -626,12 +647,12 @@ describe('github notes API', () => {
 
       await newAPI().reopenIssueOnUnpublish('posts', 'my-post');
 
-      expect(query).toBe('repo:owner/repo label:decap-cms-notes "posts/my-post" in:body');
+      expect(query).toBe('all');
       expect(patched).toEqual({ state: 'open', labels: ['decap-cms-notes'] });
     });
 
     it('leaves a lookalike entry’s thread alone', async () => {
-      const fetchMock = mockFetch([searchRoute([issue(5, 'posts/my-post-2')]), patchRoute(() => {})]);
+      const fetchMock = mockFetch([listRoute([issue(5, 'posts/my-post-2')]), patchRoute(() => {})]);
 
       await newAPI().closeIssueOnPublish('posts', 'my-post');
 
@@ -642,7 +663,7 @@ describe('github notes API', () => {
     // publish as failed.
     it('only warns when the thread cannot be updated', async () => {
       mockFetch([
-        searchRoute([issue(4, 'posts/my-post')]),
+        listRoute([issue(4, 'posts/my-post')]),
         {
           method: 'PATCH',
           path: `/repos/${REPO}/issues/4`,
@@ -710,7 +731,7 @@ describe('github notes polling', () => {
     let etag = 'W/"one"';
     const fetchMock = mockFetch([
       ...authRoutes(),
-      searchRoute([issue(4, 'posts/my-post')]),
+      listRoute([issue(4, 'posts/my-post')]),
       {
         method: 'GET',
         path: `/repos/${REPO}/issues/4`,

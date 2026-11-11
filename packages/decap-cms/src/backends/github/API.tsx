@@ -1491,9 +1491,8 @@ export default class API {
   private static readonly DELETED_LABEL = 'entry-deleted';
 
   /**
-   * Threads this session found or created, by `collection/slug`. Search lags
-   * behind writes, so without this a second note added soon after the first
-   * would miss the new issue and open another, splitting the entry's notes.
+   * Threads this session found or created, by `collection/slug`, so each
+   * note after the first does not list the repo's notes issues again.
    */
   private notesIssues = new Map<string, NotesIssueRef>();
 
@@ -1501,25 +1500,43 @@ export default class API {
     return commentToNote(comment);
   }
 
-  private notesIssueQuery(collectionName: string, slug: string, qualifiers = '') {
-    return `repo:${this.repo} label:${API.NOTES_LABEL} "${collectionName}/${slug}" in:body${qualifiers}`;
+  /**
+   * The repo's notes issues, listed by label.
+   *
+   * Deliberately not `/search/issues`: with a GitHub App installation token
+   * the search API intermittently answers an identical query with 422 "cannot
+   * be searched" (seen alternating 200/422 within a second on the same repo),
+   * and search lags behind writes. The label listing is a plain repo read
+   * with no index behind it. Paged by number rather than with
+   * requestAllPages, which follows Link headers that a proxy in front of the
+   * API may not forward.
+   */
+  private async listNotesIssues(state: 'open' | 'all'): Promise<GitHubIssue[]> {
+    const perPage = 100;
+    const issues: (GitHubIssue & { pull_request?: unknown })[] = [];
+    for (let page = 1;; page++) {
+      const batch: (GitHubIssue & { pull_request?: unknown })[] = await this.request(`${this.repoURL}/issues`, {
+        params: { labels: API.NOTES_LABEL, state, per_page: perPage, page },
+      });
+      issues.push(...batch);
+      if (batch.length < perPage) break;
+    }
+    // The issues endpoint lists pull requests too.
+    return issues.filter(issue => !issue.pull_request);
   }
 
   /**
-   * Search matches the quoted key as a phrase, so `posts/my-post` also returns
-   * the thread for `posts/my-post-2`. The body names the entry between
-   * backticks, which pins it exactly.
+   * The body names the entry between backticks, which pins it exactly, so
+   * `posts/my-post` does not also match the thread for `posts/my-post-2`.
    */
-  private async searchEntryIssue(
+  private async findNotesIssue(
     collectionName: string,
     slug: string,
-    qualifiers = '',
+    state: 'open' | 'all' = 'all',
   ): Promise<GitHubIssue | null> {
-    const response: { items?: GitHubIssue[] } = await this.request('/search/issues', {
-      params: { q: this.notesIssueQuery(collectionName, slug, qualifiers) },
-    });
     const key = `\`${collectionName}/${slug}\``;
-    return (response.items || []).find(issue => issue.body?.includes(key)) || null;
+    const issues = await this.listNotesIssues(state);
+    return issues.find(issue => issue.body?.includes(key)) || null;
   }
 
   async createEntryIssue(collectionName: string, slug: string, entryTitle?: string): Promise<GitHubIssue> {
@@ -1540,7 +1557,7 @@ export default class API {
   }
 
   /**
-   * The entry's notes thread, or null when it has none yet. A failed search
+   * The entry's notes thread, or null when it has none yet. A failed lookup
    * throws rather than answering null: read as "no thread", it would make the
    * next note open a second one.
    */
@@ -1550,7 +1567,7 @@ export default class API {
     if (cached) {
       return cached;
     }
-    const issue = await this.searchEntryIssue(collectionName, slug);
+    const issue = await this.findNotesIssue(collectionName, slug);
     if (!issue) {
       return null;
     }
@@ -1699,11 +1716,7 @@ export default class API {
     label: { add: string } | { remove: string[] },
   ) {
     try {
-      const issue = await this.searchEntryIssue(
-        collectionName,
-        slug,
-        state === 'closed' ? ' state:open' : '',
-      );
+      const issue = await this.findNotesIssue(collectionName, slug, state === 'closed' ? 'open' : 'all');
       if (!issue) {
         return;
       }
