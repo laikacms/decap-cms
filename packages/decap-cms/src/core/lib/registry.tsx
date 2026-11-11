@@ -346,6 +346,14 @@ interface EventData {
   [key: string]: any;
 }
 
+// Handlers may return either the entry's field data or the complete entry (for
+// example, to update its i18n translations). Content can have a field named
+// `data` too, so the entry's metadata keys must all be there as well.
+function isFullEntry(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  return ['data', 'collection', 'slug', 'path'].every(key => key in value);
+}
+
 export async function invokeEvent({ name, data }: { name: string, data: EventData }) {
   validateTransformEventName(name);
   const handlers = registry.eventHandlers[name];
@@ -354,7 +362,7 @@ export async function invokeEvent({ name, data }: { name: string, data: EventDat
   for (const { handler, options } of handlers) {
     const result = await handler(_data, options);
     if (result !== undefined) {
-      const entry = { ..._data.entry, data: result };
+      const entry = isFullEntry(result) ? result : { ..._data.entry, data: result };
       _data = { ...data, entry };
     }
   }
