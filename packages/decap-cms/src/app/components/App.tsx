@@ -3,9 +3,12 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 
 import { loginUser, logoutUser, sessionExpired, sessionInvalidated } from '@/core/actions/auth';
 import { createNewEntry } from '@/core/actions/collections';
+import { startDeployNotifications, startDeployStatus } from '@/core/actions/deployStatus';
 import { openMediaLibrary } from '@/core/actions/mediaLibrary';
 import { currentBackend } from '@/core/backend';
 import CollectionComponent from '@/core/components/Collection/Collection';
+import Deploys from '@/core/components/Deploys/Deploys';
+import { deployIndicator } from '@/core/components/Deploys/deployStatusIndicator';
 import Editor from '@/core/components/Editor/Editor';
 import MediaLibrary from '@/core/components/MediaLibrary/MediaLibrary';
 import NotFoundPage from '@/core/components/NotFoundPage';
@@ -19,12 +22,14 @@ import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
 import { isCollectionVisible } from '@/core/lib/collectionAccess';
 import { CmsSlotsProvider } from '@/core/lib/slots';
+import { selectDeployStatusVisible } from '@/core/reducers/deployStatus';
 import { matchExtraRoute } from '@/core/routing/extraRoutes';
 import { matchRoute } from '@/core/routing/router';
 import { Loader, StandaloneAuthPage } from '@/ui/default/index';
 import { TopBarProgress } from '@/ui/TopBarProgress';
 import Header from './Header';
 
+import type { DeployIndicator } from '@/core/components/Deploys/deployStatusIndicator';
 import type { ErrorBoundaryRenderProps } from '@/core/components/UI';
 import type { CmsSlots } from '@/core/lib/slots';
 import type { ExtraRouteParams } from '@/core/routing/extraRoutes';
@@ -66,6 +71,12 @@ export interface AppHeaderRenderProps {
   logoUrl?: string;
   logo?: { src: string, show_in_header?: boolean };
   isTestRepo?: boolean;
+  /**
+   * The Deploys nav item's label key and dot colour, present only while the
+   * backend reports deploys for this site (see `@/lib/backend/deployStatus`).
+   * Absent: render no Deploys link.
+   */
+  deploys?: DeployIndicator | undefined;
 }
 
 /**
@@ -358,6 +369,7 @@ function CollectionView({
 function AppRoutes({
   collections,
   hasWorkflow,
+  showDeploys,
   renderRoot,
   renderNotFound,
   extraRoutes,
@@ -365,6 +377,7 @@ function AppRoutes({
 }: {
   collections: Collections,
   hasWorkflow: boolean,
+  showDeploys: boolean,
   renderRoot?: (() => React.ReactNode) | undefined,
   renderNotFound?: (() => React.ReactNode) | undefined,
   extraRoutes?: ExtraRoute[] | undefined,
@@ -485,6 +498,12 @@ function AppRoutes({
       );
     case 'media':
       return <OpenMediaLibraryAndRedirect collectionName={defaultCollectionName} />;
+    case 'deploys':
+      // A backend that reports no deploys has no such page.
+      if (showDeploys) {
+        return <Deploys />;
+      }
+      return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage backLink={{ to: '/' }} />;
     default:
       return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage backLink={{ to: '/' }} />;
   }
@@ -537,6 +556,7 @@ function AppContent({
   const collections = useAppSelector(state => state.collections);
   const isFetching = useAppSelector(state => state.globalUI.isFetching);
   const mediaLibrary = useAppSelector(state => state.mediaLibrary);
+  const deployStatus = useAppSelector(state => state.deployStatus);
 
   const routeMatch = useMemo(() => matchRoute(routing, path), [routing, path]);
   const entryRouteParams = routeMatch?.key === 'entry'
@@ -628,6 +648,30 @@ function AppContent({
     if (config == null || config.isFetching || config.error) return;
     return currentBackend(config).onSessionInvalid(message => dispatch(sessionInvalidated(message)));
   }, [config, dispatch]);
+
+  // Deploy status, for a backend that reports deploys (duck-typed in the
+  // thunks; a no-op for every other backend). Started once a user exists,
+  // not at mount: the backend cannot be resolved while the config loads,
+  // and a ledger of saves left from before a reload only resumes once
+  // something subscribes. Both thunks are idempotent; logout tears them down.
+  const hasUser = auth.user != null;
+  useEffect(() => {
+    if (!hasUser || config == null || config.isFetching || config.error) return;
+    dispatch(startDeployNotifications());
+    dispatch(startDeployStatus());
+  }, [hasUser, config, dispatch]);
+
+  // Visible once the site has produced deploy information. While the first
+  // read is still in flight the page itself is reachable (it shows its
+  // loading state), so a reload on /deploys does not land on a 404 first.
+  const deploysVisible = deployStatus != null && selectDeployStatusVisible(deployStatus);
+  const deploysRoutable = deploysVisible
+    || (deployStatus != null && deployStatus.supported && deployStatus.pageEnabled && !deployStatus.loaded
+      && !deployStatus.error);
+  const deploysIndicator = useMemo(
+    () => (deploysVisible ? deployIndicator(deployStatus.pendingCount, deployStatus.latest) : undefined),
+    [deploysVisible, deployStatus],
+  );
 
   const handleOpenMediaLibrary = useCallback(
     (payload?: Parameters<typeof openMediaLibrary>[0]) => {
@@ -755,6 +799,7 @@ function AppContent({
     logo: config.logo,
     isTestRepo: config.backend?.name === 'test-repo',
     showMediaButton,
+    deploys: deploysIndicator,
   };
 
   const routedContent = (
@@ -763,6 +808,7 @@ function AppContent({
       <AppRoutes
         collections={collections}
         hasWorkflow={hasWorkflow}
+        showDeploys={deploysRoutable}
         renderRoot={renderRoot}
         renderNotFound={renderNotFound}
         extraRoutes={extraRoutes}

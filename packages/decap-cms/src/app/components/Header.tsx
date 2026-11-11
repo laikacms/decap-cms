@@ -4,13 +4,14 @@ import React from 'react';
 import { shallowEqual } from 'react-redux';
 
 import { checkBackendStatus } from '@/core/actions/status';
+import { StatusDot } from '@/core/components/Deploys/deployStatusIndicator';
 import { OfflineIndicator, SettingsDropdown } from '@/core/components/UI';
 import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
+import { selectCreatableCollectionNames } from '@/core/lib/canCreateNewEntry';
 import { canEditCollection } from '@/core/lib/collectionAccess';
 import { selectUserIdentity } from '@/core/lib/userHelper';
-import { selectCreatableCollectionNames } from '@/core/lib/canCreateNewEntry';
 import { useLocation } from '@/core/routing/context';
 import { NavLink } from '@/core/routing/Link';
 import {
@@ -25,6 +26,7 @@ import {
   zIndex,
 } from '@/ui/default/index';
 
+import type { DeployIndicator } from '@/core/components/Deploys/deployStatusIndicator';
 import type { CmsCollections, CmsCollectionState, CmsUser } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
@@ -100,6 +102,10 @@ const AppHeaderButton = styled.button`
 
   .decap-icon {
     margin-right: 4px;
+  }
+
+  /* The deploy dot's colour is the deploy state; the nav must not repaint it. */
+  .decap-icon:not(.deploy-status-dot) {
     color: ${colors.controlLabel};
   }
 
@@ -108,7 +114,7 @@ const AppHeaderButton = styled.button`
   &:focus-visible {
     ${styles.buttonActive};
 
-    .decap-icon {
+    .decap-icon:not(.deploy-status-dot) {
       ${styles.buttonActive};
     }
   }
@@ -116,7 +122,7 @@ const AppHeaderButton = styled.button`
   &.${ACTIVE_CLASS_NAME} {
     ${styles.buttonActive};
 
-    .decap-icon {
+    .decap-icon:not(.deploy-status-dot) {
       ${styles.buttonActive};
     }
   }
@@ -189,6 +195,8 @@ interface HeaderProps {
   logoUrl?: string;
   logo?: { src: string, show_in_header?: boolean };
   isTestRepo?: boolean;
+  /** Present only while the backend reports deploys; see `AppHeaderRenderProps.deploys`. */
+  deploys?: DeployIndicator | undefined;
   t: TranslateFunction;
 }
 
@@ -204,6 +212,7 @@ function Header({
   logoUrl, // Deprecated, replaced by `logo.src`
   logo,
   isTestRepo,
+  deploys,
   t,
 }: HeaderProps) {
   const dispatch = useAppDispatch();
@@ -215,6 +224,7 @@ function Header({
     || pathname.startsWith('/collections')
     || pathname.startsWith('/media');
   const workflowActive = pathname.startsWith('/workflow');
+  const deploysActive = pathname.startsWith('/deploys');
 
   React.useEffect(() => {
     const intervalId = setInterval(
@@ -281,6 +291,26 @@ function Header({
                   <Icon type="media-alt" />
                   <AppHeaderButtonLabel>{t('app.header.media')}</AppHeaderButtonLabel>
                 </AppHeaderButton>
+              </li>
+            )}
+            {
+              /* Last: the one item that is not somewhere an editor goes to
+                work. The item IS the deploy indicator: its label and dot name
+                the site's state ("Publishing…", "Build failed"), so there are
+                not two doors to the same page. */
+            }
+            {deploys && (
+              <li>
+                <AppHeaderNavLink
+                  to="/deploys"
+                  className={deploysActive ? ACTIVE_CLASS_NAME : undefined}
+                  aria-current={deploysActive ? 'page' : undefined}
+                  aria-label={t(deploys.key)}
+                  data-testid="deploys-nav"
+                >
+                  <StatusDot color={deploys.color} />
+                  <AppHeaderButtonLabel>{t(deploys.key)}</AppHeaderButtonLabel>
+                </AppHeaderNavLink>
               </li>
             )}
           </AppHeaderNavList>

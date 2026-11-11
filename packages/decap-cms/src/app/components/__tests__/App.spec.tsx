@@ -3,7 +3,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // Pass-through translate/useTranslate so `AppContent` doesn't need a real
 // `@/core/i18n` `<I18n>` ancestor.
@@ -34,6 +34,9 @@ vi.mock('../../../core/components/Editor/Editor', () => ({
 vi.mock('../../../core/components/MediaLibrary/MediaLibrary', () => ({
   default: () => <div data-testid="media-library" />,
 }));
+vi.mock('../../../core/components/Deploys/Deploys', () => ({
+  default: () => <div data-testid="deploys-view" />,
+}));
 vi.mock('../../../core/components/UI', async () => {
   const actual = await vi.importActual<UIModule>('../../../core/components/UI');
   return {
@@ -51,8 +54,14 @@ vi.mock('../../../core/components/UI', async () => {
 // its listeners, so the session-expiry specs below can fire the event.
 const sessionExpiredListeners = vi.hoisted(() => [] as Array<() => void>);
 const sessionInvalidListeners = vi.hoisted(() => [] as Array<(message: string) => void>);
+// The backend implementation the deploy-status thunks duck-type; empty (no
+// deploy methods) unless a spec sets one.
+const backendImplementation = vi.hoisted(() => ({ current: {} as Record<string, unknown> }));
 vi.mock('@/core/backend', () => ({
   currentBackend: () => ({
+    get implementation() {
+      return backendImplementation.current;
+    },
     onSessionExpired: (listener: () => void) => {
       sessionExpiredListeners.push(listener);
       return () => {};
@@ -67,10 +76,12 @@ vi.mock('@/core/backend', () => ({
 }));
 
 import { AppContent } from '@/app/components/App';
+import { stopDeployNotifications } from '@/core/actions/deployStatus';
 import { context } from '@/core/contexts/decap';
-import { defaultRoutingTable } from '@/core/routing/router';
+import { initialDeployStatusState } from '@/core/reducers/deployStatus';
 import { RouterProvider as InAppRouterProvider } from '@/core/routing/context';
 import { createDefaultRouter } from '@/core/routing/defaultRouter';
+import { defaultRoutingTable } from '@/core/routing/router';
 
 import type { AppLayoutRenderProps } from '@/app/components/App';
 import type * as UIModule from '@/core/components/UI';
@@ -112,7 +123,8 @@ function renderAppContentAt(
     ...render(
       <Provider store={mockStore(state)}>
         <context.Provider value={decapValue}>
-          {/*
+          {
+            /*
             The not-found page's "Back to home" link (DCMS-1837, like the
             DCMS-445 entry-not-found link before it) renders via the in-house
             `<Link>`, which reads `@/core/routing/context`'s `RouterProvider`
@@ -121,7 +133,8 @@ function renderAppContentAt(
             router purely so `<Link>` doesn't throw. Route matching itself
             still runs off `decapValue.path`, not this router's location, so
             it doesn't affect which page renders.
-          */}
+          */
+          }
           <InAppRouterProvider router={createDefaultRouter()}>
             <AppContent {...props} />
           </InAppRouterProvider>
@@ -489,5 +502,86 @@ describe('AppContent - DCMS-578 /media deep-link', () => {
     );
 
     expect(store.getActions().some(action => action.type === 'MEDIA_LIBRARY_OPEN')).toBe(true);
+  });
+});
+
+describe('AppContent - deploy status', () => {
+  const visibleDeployStatus = {
+    ...initialDeployStatusState,
+    supported: true,
+    pageEnabled: true,
+    loaded: true,
+    pendingCount: 1,
+  };
+
+  afterEach(() => {
+    backendImplementation.current = {};
+    stopDeployNotifications();
+  });
+
+  // Every backend that does not report deploys: no page, no nav item.
+  it('renders the not-found page on /deploys for a backend without deploy status', () => {
+    const { queryByTestId, getByText } = renderAppContentAt('/deploys');
+
+    expect(queryByTestId('deploys-view')).not.toBeInTheDocument();
+    expect(getByText('app.notFoundPage.header')).toBeInTheDocument();
+  });
+
+  it('passes no Deploys indicator to the header for such a backend', () => {
+    const renderHeader = vi.fn(() => null);
+    renderAppContentAt('/collections/posts', { renderHeader });
+
+    expect(renderHeader).toHaveBeenCalled();
+    expect((renderHeader.mock.calls[0] as unknown[])[0]).toMatchObject({ deploys: undefined });
+  });
+
+  it('renders the Deploys page once the site has deploy information', () => {
+    const { getByTestId } = renderAppContentAt('/deploys', {}, baseState({ deployStatus: visibleDeployStatus }));
+
+    expect(getByTestId('deploys-view')).toBeInTheDocument();
+  });
+
+  // A reload on /deploys: the backend reports deploys but the first read is in flight.
+  it('renders the Deploys page while the first read is still loading', () => {
+    const { getByTestId } = renderAppContentAt(
+      '/deploys',
+      {},
+      baseState({ deployStatus: { ...visibleDeployStatus, pendingCount: 0, loaded: false } }),
+    );
+
+    expect(getByTestId('deploys-view')).toBeInTheDocument();
+  });
+
+  it('hands the header the indicator for the current state', () => {
+    const renderHeader = vi.fn(() => null);
+    renderAppContentAt('/collections/posts', { renderHeader }, baseState({ deployStatus: visibleDeployStatus }));
+
+    expect((renderHeader.mock.calls[0] as unknown[])[0]).toMatchObject({
+      deploys: { key: 'app.header.deploysPublishing' },
+    });
+  });
+
+  it('subscribes to deploy status once a user is signed in', () => {
+    const subscribeDeployStatus = vi.fn(() => () => {});
+    const subscribeDeployResolutions = vi.fn(() => () => {});
+    backendImplementation.current = {
+      subscribeDeployStatus,
+      subscribeDeployResolutions,
+      listDeployments: vi.fn().mockResolvedValue([]),
+    };
+
+    renderAppContentAt('/collections/posts');
+
+    expect(subscribeDeployStatus).toHaveBeenCalledTimes(1);
+    expect(subscribeDeployResolutions).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not subscribe before anyone signs in', () => {
+    const subscribeDeployStatus = vi.fn(() => () => {});
+    backendImplementation.current = { subscribeDeployStatus };
+
+    renderAppContentAt('/collections/posts', {}, baseState({ auth: { user: null, isFetching: false, error: null } }));
+
+    expect(subscribeDeployStatus).not.toHaveBeenCalled();
   });
 });

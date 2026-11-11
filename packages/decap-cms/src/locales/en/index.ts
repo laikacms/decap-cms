@@ -24,6 +24,11 @@ const en = {
     header: {
       content: 'Contents',
       workflow: 'Workflow',
+      deploys: 'Deploys',
+      deploysDeployed: 'Deployed',
+      deploysPublishing: 'Publishing…',
+      deploysBuilding: 'Building',
+      deploysFailed: 'Build failed',
       media: 'Media',
       quickAdd: 'Quick add',
     },
@@ -399,6 +404,41 @@ const en = {
     settingsDropdown: {
       logOut: 'Log Out',
       account: 'Account options dropdown',
+    },
+    deploys: {
+      heading: 'Deploys',
+      refresh: 'Refresh',
+      refreshing: 'Refreshing…',
+      viewSite: 'View site',
+      summaryPublishing:
+        'Publishing your change: waiting for your site to build. |||| Publishing %{smart_count} changes: waiting for your site to build.',
+      summaryBuilding: 'Your site is building.',
+      summaryLive: 'Your latest change is live. Deployed %{time}.',
+      summaryFailed: 'The last build failed. Your most recent change is not on the site yet.',
+      summaryUnknown: 'No deploy has been reported for this site yet.',
+      loadError: 'Could not load deploys: %{details}',
+      multipleTargets: 'Deploys are reported from more than one place: %{targets}.',
+      emptyConfigured:
+        'Nothing recorded yet. If this site deploys on Netlify, add the deploy webhook in your Decap Turbo dashboard: Netlify does not report branch or production deploys to your git provider. Other hosts report automatically.',
+      emptyUnknown: 'Loading deploys…',
+      liveOnBranchHint: "The current deploy of this branch, served at the branch's own URL, not the published site.",
+      stalledHint:
+        'This build was still running when your host last mentioned it, and nothing has been reported since. A deploy preview whose branch was deleted mid-build ends this way.',
+      columnState: 'State',
+      columnEntry: 'Saved entry',
+      columnWhere: 'Published to',
+      columnTarget: 'Reported by',
+      columnCommit: 'Commit',
+      columnWhen: 'When',
+      state: {
+        pending: 'Queued',
+        building: 'Building',
+        live: 'Live',
+        deployed: 'Deployed',
+        failed: 'Failed',
+        canceled: 'Superseded',
+        stalled: 'Unknown',
+      },
     },
     toast: {
       noteAdded: 'Note added',

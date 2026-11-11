@@ -200,6 +200,13 @@ export const defaultRoutingTable: RoutingTable = {
       return {};
     },
   },
+  deploys: {
+    create: () => `/deploys`,
+    get: path => {
+      if (path !== '/deploys') throw new Error(`Invalid deploys path: ${path}`);
+      return {};
+    },
+  },
 };
 
 /**

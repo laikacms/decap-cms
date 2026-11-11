@@ -3,7 +3,7 @@ vi.mock('@/lib/routing/hashHistory');
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createDefaultRouter } from '@/core/routing/defaultRouter';
-import { defaultRoutingTable, matchRoute } from '@/core/routing/router';
+import { createRoutePath, defaultRoutingTable, matchRoute } from '@/core/routing/router';
 import { createHashHistory } from '@/lib/routing/hashHistory';
 
 import type { HashHistory, HistoryBlocker, HistoryListener } from '@/lib/routing/hashHistory';
@@ -152,6 +152,17 @@ describe('router', () => {
 
       const match = matchRoute(defaultRoutingTable, path);
       expect(match).toEqual({ key: 'media', params: {} });
+    });
+
+    it('round-trips the deploys route', () => {
+      const path = defaultRoutingTable.deploys.create();
+      expect(path).toBe('/deploys');
+      expect(defaultRoutingTable.deploys.get(path)).toEqual({});
+      expect(createRoutePath(defaultRoutingTable, 'deploys')).toBe('/deploys');
+
+      expect(matchRoute(defaultRoutingTable, path)).toEqual({ key: 'deploys', params: {} });
+      expect(() => defaultRoutingTable.deploys.get('/deploys/extra')).toThrow('Invalid deploys path');
+      expect(matchRoute(defaultRoutingTable, '/deploys/')).toBeNull();
     });
   });
 

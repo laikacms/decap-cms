@@ -33,7 +33,7 @@ vi.mock('@/core/components/UI', () => ({
 
 import Header from '@/app/components/Header';
 import { RouterProvider } from '@/core/routing/context';
-import { colors } from '@/ui/default/styles';
+import { colors, colorsRaw } from '@/ui/default/styles';
 
 import type { Router } from '@/core/routing/router';
 
@@ -66,10 +66,10 @@ const baseProps = {
   showMediaButton: true,
 };
 
-function renderHeaderAt(pathname: string) {
+function renderHeaderAt(pathname: string, props: Partial<React.ComponentProps<typeof Header>> = {}) {
   return render(
     <RouterProvider router={createTestRouter(pathname)}>
-      <Header {...baseProps} />
+      <Header {...baseProps} {...props} />
     </RouterProvider>,
   );
 }
@@ -151,5 +151,43 @@ describe('Header nav label contrast (DCMS-1390)', () => {
 
     expect(computedColor(contentLink)).toBe(colors.active.toLowerCase());
     expect(colors.active.toLowerCase()).not.toBe(colors.controlLabel.toLowerCase());
+  });
+});
+
+describe('Header Deploys nav item', () => {
+  const deploys = { key: 'app.header.deploysFailed', color: colorsRaw.redDark };
+
+  // Every backend that does not report deploys sees nothing new.
+  it('renders no Deploys link without a deploy indicator', () => {
+    renderHeaderAt('/');
+
+    expect(screen.queryByTestId('deploys-nav')).not.toBeInTheDocument();
+  });
+
+  it('names the state in the link itself, last in the nav', () => {
+    renderHeaderAt('/', { deploys });
+
+    const link = screen.getByTestId('deploys-nav');
+    expect(link).toHaveAttribute('href', '#/deploys');
+    expect(link).toHaveAttribute('aria-label', 'app.header.deploysFailed');
+    expect(link).toHaveTextContent('app.header.deploysFailed');
+    const items = screen.getAllByRole('listitem');
+    expect(items[items.length - 1]).toContainElement(link);
+  });
+
+  it('marks it aria-current on /deploys and leaves Contents unset', () => {
+    renderHeaderAt('/deploys', { deploys });
+
+    expect(screen.getByTestId('deploys-nav')).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByLabelText('app.header.content')).not.toHaveAttribute('aria-current');
+  });
+
+  // The colour is the state, so the nav's active/hover recolouring must not erase it.
+  it('keeps the dot in the state colour even while active', () => {
+    renderHeaderAt('/deploys', { deploys });
+
+    const dot = screen.getByTestId('deploys-nav').querySelector('.deploy-status-dot');
+    expect(dot).toBeTruthy();
+    expect(computedColor(dot as Element)).toBe(colorsRaw.redDark.toLowerCase());
   });
 });
