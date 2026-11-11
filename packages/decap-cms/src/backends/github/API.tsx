@@ -1515,14 +1515,21 @@ export default class API {
    * and search lags behind writes. The label listing is a plain repo read
    * with no index behind it. Paged by number rather than with
    * requestAllPages, which follows Link headers that a proxy in front of the
-   * API may not forward.
+   * API may not forward, and capped so a host that keeps answering full
+   * pages cannot hold a lookup open indefinitely.
+   *
+   * Narrowed by the `collection:` label createEntryIssue writes alongside the
+   * notes label (GitHub ANDs the two), so a lookup does not list every notes
+   * thread on the site.
    */
-  private async listNotesIssues(state: 'open' | 'all'): Promise<GitHubIssue[]> {
+  private async listNotesIssues(state: 'open' | 'all', collectionName: string): Promise<GitHubIssue[]> {
+    const labels = `${API.NOTES_LABEL},collection:${collectionName}`;
     const perPage = 100;
+    const maxPages = 20;
     const issues: (GitHubIssue & { pull_request?: unknown })[] = [];
-    for (let page = 1;; page++) {
+    for (let page = 1; page <= maxPages; page++) {
       const batch: (GitHubIssue & { pull_request?: unknown })[] = await this.request(`${this.repoURL}/issues`, {
-        params: { labels: API.NOTES_LABEL, state, per_page: perPage, page },
+        params: { labels, state, per_page: perPage, page },
       });
       issues.push(...batch);
       if (batch.length < perPage) break;
@@ -1541,7 +1548,7 @@ export default class API {
     state: 'open' | 'all' = 'all',
   ): Promise<GitHubIssue | null> {
     const key = `\`${collectionName}/${slug}\``;
-    const issues = await this.listNotesIssues(state);
+    const issues = await this.listNotesIssues(state, collectionName);
     return issues.find(issue => issue.body?.includes(key)) || null;
   }
 

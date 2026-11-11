@@ -116,7 +116,7 @@ describe('github notes API', () => {
 
       const [[input, init]] = fetchMock.mock.calls;
       const params = new URL(String(input)).searchParams;
-      expect(params.get('labels')).toBe('decap-cms-notes');
+      expect(params.get('labels')).toBe('decap-cms-notes,collection:posts');
       expect(params.get('state')).toBe('all');
       expect((init!.headers as Record<string, string>).Authorization).toBe('token secret');
     });
@@ -145,6 +145,14 @@ describe('github notes API', () => {
 
       await expect(newAPI().findEntryIssue('posts', 'my-post')).resolves.toMatchObject({ number: 4 });
       expect(requestsTo(fetchMock, 'GET', ISSUES_PATH)).toHaveLength(2);
+    });
+
+    it('stops paging after 20 pages of a host that keeps answering full pages', async () => {
+      const fullPage = Array.from({ length: 100 }, (_, i) => issue(i + 10, `posts/p${i}`));
+      const fetchMock = mockFetch([listRoute(fullPage)]);
+
+      await expect(newAPI().findEntryIssue('posts', 'missing')).resolves.toBeNull();
+      expect(requestsTo(fetchMock, 'GET', ISSUES_PATH)).toHaveLength(20);
     });
 
     it('answers null when only a lookalike entry has a thread', async () => {
