@@ -206,10 +206,6 @@ export function notifyEntrySaved(entryLabel?: string, entryUrlPath?: string) {
         // promising a follow-up that cannot come would be worse than silence.
         message: { key: watching ? 'ui.toast.entryPublishing' : 'ui.toast.entrySaved' },
         type: 'success',
-        // In progress while it is up; a deploy that beats it updates it in
-        // place and turns the spinner off. Absent for the plain toast, which
-        // stays exactly what every other backend has always shown.
-        ...(watching && { spinner: true }),
         // Short either way. The editor is not made to watch a build.
         dismissAfter: 4000,
       }),

@@ -116,9 +116,8 @@ describe('deploy notifications', () => {
     expect(sent(store)[0].payload).toMatchObject({
       message: { key: 'ui.toast.entryPublishing' },
       dismissAfter: 4000,
-      // v4 shows a spinner while the short save toast is up.
-      spinner: true,
     });
+    expect(sent(store)[0].payload.spinner).toBeUndefined();
   });
 
   it('subscribes once for the whole session, however many saves happen', () => {
