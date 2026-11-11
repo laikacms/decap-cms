@@ -864,6 +864,32 @@ describe('entries', () => {
         error: false,
       });
     });
+
+    it('should not return error on path with uppercase characters', () => {
+      selectCustomPath.mockReturnValue('folder/Parent/Child/index.md');
+      selectEntryByPath.mockReturnValue(undefined);
+      expect(
+        validateMetaField(
+          { ...state, entryDraft: { entry: {} } },
+          collection,
+          { meta: true, name: 'path' },
+          'Parent/Child',
+          t,
+        ),
+      ).toEqual({ error: false });
+    });
+
+    it('should return error on path with uppercase and invalid characters', () => {
+      expect(validateMetaField(state, null, { meta: true, name: 'path' }, 'Invalid Path', t)).toEqual({
+        error: {
+          message: {
+            key: 'editor.editorControlPane.widget.invalidPath',
+            args: { path: 'Invalid Path' },
+          },
+          type: 'CUSTOM',
+        },
+      });
+    });
   });
 
   // Inline "create new entry from a relation field" (DCMS-1421). Runs

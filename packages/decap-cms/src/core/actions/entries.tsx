@@ -1199,7 +1199,8 @@ export function validateMetaField(
       .map(segment => processSegment(segment))
       .join('/');
 
-    if (value !== sanitizedPath) return getPathError(value, 'invalidPath', t);
+    // Slug processing lower-cases each segment, but folder names may keep their case.
+    if (value.toLocaleLowerCase() !== sanitizedPath) return getPathError(value, 'invalidPath', t);
 
     const customPath = selectCustomPath(collection, {
       entry: { meta: { path: value } },
