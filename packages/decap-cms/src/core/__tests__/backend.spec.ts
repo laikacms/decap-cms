@@ -1134,6 +1134,64 @@ describe('Backend', () => {
       );
     });
 
+    it('should suffix the slug placeholder before a fixed path filename', async () => {
+      vi.mocked(sanitizeSlug).mockReturnValue('some-post-title');
+      vi.mocked(sanitizeChar).mockReturnValue('-');
+      const exists = { file: { path: 'x' }, content: { kind: 'raw', raw: 'data' } };
+      const implementation = {
+        init: vi.fn(() => implementation),
+        getEntry: vi.fn().mockResolvedValueOnce(exists).mockResolvedValueOnce(exists).mockResolvedValueOnce(undefined),
+      };
+      const collection = {
+        name: 'posts',
+        fields: [{ name: 'title' }],
+        type: FOLDER,
+        folder: 'posts',
+        slug: '{{slug}}',
+        path: '{{slug}}/index',
+      };
+      const backend = new Backend(implementation as any, { config: {}, backendName: 'github' } as any);
+
+      await expect(
+        backend.generateUniqueSlug(collection as any, { title: 'some post title' }, {} as any, [], undefined),
+      ).resolves.toBe('some-post-title-2/index');
+      expect(implementation.getEntry.mock.calls.map(call => call[0])).toEqual([
+        'posts/some-post-title/index.md',
+        'posts/some-post-title-1/index.md',
+        'posts/some-post-title-2/index.md',
+      ]);
+    });
+
+    it('keeps a nested collision candidate distinct within the byte cap', async () => {
+      const longSlug = 'a'.repeat(210);
+      vi.mocked(sanitizeSlug).mockReturnValue(longSlug);
+      vi.mocked(sanitizeChar).mockReturnValue('-');
+      const implementation = {
+        init: vi.fn(() => implementation),
+        getEntry: vi.fn().mockResolvedValue(undefined),
+      };
+      const collection = {
+        name: 'posts',
+        fields: [{ name: 'title' }],
+        type: FOLDER,
+        folder: 'posts',
+        slug: '{{slug}}',
+        path: '{{slug}}/index',
+      };
+      const backend = new Backend(implementation as any, { config: {}, backendName: 'github' } as any);
+
+      const result = await backend.generateUniqueSlug(
+        collection as any,
+        { title: longSlug },
+        {} as any,
+        ['a'.repeat(200)],
+        undefined,
+      );
+
+      expect(result).not.toBe('a'.repeat(200));
+      expect(new TextEncoder().encode(result).length).toBeLessThanOrEqual(200);
+    });
+
     describe('length', () => {
       const encoder = new TextEncoder();
       const longVietnamese = 'hướng-dẫn-chăm-sóc-da-mặt-cho-làn-da-nhạy-cảm-'.repeat(20) + 'end';

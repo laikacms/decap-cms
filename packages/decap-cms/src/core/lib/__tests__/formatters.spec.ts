@@ -15,6 +15,7 @@ import {
   commitMessageFormatter,
   folderFormatter,
   getProcessSegment,
+  getSlugFormatter,
   MAX_SLUG_BYTES,
   prepareSlug,
   previewUrlFormatter,
@@ -1077,6 +1078,67 @@ describe('formatters', () => {
         { date: new Date(Date.UTC(2026, 6, 28)) },
       );
       expect(result).toBe('2026-07-photo.jpg');
+    });
+  });
+
+  describe('getSlugFormatter', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.spyOn(Date, 'now').mockImplementation(() => new Date('2020-01-01T13:28:27.679Z').valueOf());
+      vi.mocked(selectIdentifier).mockReturnValue('title');
+    });
+
+    const format = (collection: Record<string, unknown>, data: Record<string, unknown>) =>
+      getSlugFormatter(collection as any, data, slugConfig as any);
+
+    it('should apply a suffix to a slug without a path template', () => {
+      expect(format({ slug: '{{slug}}' }, { title: 'Post Title' })('-1')).toBe('post-title-1');
+    });
+
+    it('should apply a suffix to the slug placeholder before the rest of the path', () => {
+      expect(format({ slug: '{{slug}}', path: '{{ slug }}/index' }, { title: 'Post Title' })('-1'))
+        .toBe('post-title-1/index');
+    });
+
+    it('should apply a suffix to the identifier field placeholder in the path', () => {
+      expect(format({ slug: '{{year}}-{{slug}}', path: '{{title}}/index' }, { title: 'Post Title' })('-1'))
+        .toBe('post-title-1/index');
+    });
+
+    it('should apply a suffix to every slug placeholder', () => {
+      expect(format({ slug: '{{slug}}', path: '{{slug}}/{{slug}}' }, { title: 'Post Title' })('-1'))
+        .toBe('post-title-1/post-title-1');
+    });
+
+    it('should apply a suffix to a filtered slug placeholder', () => {
+      // v4 leaves the slug value in a path as the filter made it (upstream
+      // re-sanitizes it, lowercasing an `upper` filter's output).
+      expect(format({ slug: '{{slug}}', path: '{{slug | upper}}/index' }, { title: 'Post Title' })('-1'))
+        .toBe('POST-TITLE-1/index');
+    });
+
+    it('should not apply a suffix to variables that only start with the identifier field', () => {
+      expect(
+        format({ slug: '{{slug}}', path: '{{title_short}}/index' }, { title: 'Post Title', title_short: 'Short' })(
+          '-1',
+        ),
+      ).toBe('short/index-1');
+    });
+
+    it('should apply a suffix to the complete path when it has no slug placeholder', () => {
+      expect(format({ slug: '{{slug}}', path: 'sub_dir/{{year}}/index' }, { title: 'Post Title' })('-1'))
+        .toBe('sub_dir/2020/index-1');
+    });
+
+    it('should resolve the date once for every suffix', () => {
+      const formatSlug = format(
+        { slug: '{{year}}-{{month}}-{{day}}-{{slug}}', path: '{{year}}/{{slug}}' },
+        { title: 'Post Title' },
+      );
+
+      expect(formatSlug()).toBe('2020/2020-01-01-post-title');
+      expect(formatSlug('-1')).toBe('2020/2020-01-01-post-title-1');
+      expect(Date.now).toHaveBeenCalledTimes(1);
     });
   });
 

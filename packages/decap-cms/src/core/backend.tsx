@@ -25,8 +25,8 @@ import { contentExists, entryDataFromContent, legacyRaw } from './lib/backendEnt
 import {
   commitMessageFormatter,
   previewUrlFormatter,
+  getSlugFormatter,
   slugByteBudget,
-  slugFormatter,
   truncateSlug,
   utf8ByteLength,
 } from './lib/formatters';
@@ -760,7 +760,6 @@ export class Backend {
     customPath: string | undefined,
   ) {
     const slugConfig = config.slug;
-    let slug: string;
     // Capped in bytes, not characters: under the default `unicode` encoding a
     // Vietnamese or CJK title keeps its characters raw at 2-4 bytes each, so
     // even a slug within `max_length` could produce an editorial workflow
@@ -768,14 +767,24 @@ export class Backend {
     // nested collection's custom path: that slug is derived from a path the
     // editor typed, which is saved as-is and must keep matching it.
     let maxBytes = Infinity;
+    let formatSlug: (suffix?: string) => string;
     if (customPath) {
-      slug = slugFromCustomPath(collection, customPath);
+      const slug = slugFromCustomPath(collection, customPath);
+      formatSlug = (suffix = '') => `${slug}${suffix}`;
     } else {
       maxBytes = slugByteBudget(collection, config);
-      slug = truncateSlug(slugFormatter(collection, entryData, slugConfig), maxBytes, slugConfig);
+      formatSlug = getSlugFormatter(collection, entryData, slugConfig);
+    }
+    // Over the cap, the slug in front of the suffix gives way, so the suffix
+    // stays whole and distinct. A custom path has no cap (Infinity).
+    function fitSlug(suffix = '') {
+      const slug = formatSlug(suffix);
+      return utf8ByteLength(slug) > maxBytes
+        ? `${truncateSlug(slug, maxBytes - utf8ByteLength(suffix), slugConfig)}${suffix}`
+        : slug;
     }
     let i = 1;
-    let uniqueSlug = slug;
+    let uniqueSlug = fitSlug();
 
     // Check for duplicate slug in loaded entities store first before repo
     while (
@@ -787,13 +796,9 @@ export class Backend {
         selectUseWorkflow(config),
       ))
     ) {
-      // The suffix is kept whole and the slug in front of it gives way, so a
-      // slug already at the cap stays within it once `-1`, `-2`, ... is added.
-      const suffix = `${sanitizeChar(' ', slugConfig)}${i++}`;
-      const base = maxBytes === Infinity
-        ? slug
-        : truncateSlug(slug, maxBytes - utf8ByteLength(suffix), slugConfig);
-      uniqueSlug = `${base}${suffix}`;
+      // With a collection `path`, the suffix goes after the slug in it, so
+      // `post/index` becomes `post-1/index` rather than `post/index-1`.
+      uniqueSlug = fitSlug(`${sanitizeChar(' ', slugConfig)}${i++}`);
     }
     return uniqueSlug;
   }
