@@ -812,7 +812,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
         field,
         item as Record<string, unknown>,
       );
-      const key = `item-${index}`;
+      const key = keys[index];
       return (
         <SortableListItem
           css={[styles.listControlItem, styles.listControlItemCollapsed]}
@@ -823,6 +823,8 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
           <StyledListItemTopBar
             onCollapseToggle={undefined}
             onRemove={() => handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
+            allowRemove={field.allow_remove ?? true}
+            allowReorder={field.allow_reorder ?? true}
             dragHandle={SortableHandle}
             id={key}
           />
