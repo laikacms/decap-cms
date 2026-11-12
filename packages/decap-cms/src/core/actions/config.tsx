@@ -5,7 +5,7 @@ import { resolveBackend } from '@/core/backend';
 import { FILES, FOLDER } from '@/core/constants/collectionTypes';
 import { SIMPLE as SIMPLE_PUBLISH_MODE } from '@/core/constants/publishModes';
 import { I18N, I18N_FIELD, I18N_STRUCTURE } from '@/core/lib/i18n';
-import { getEntryCodec } from '@/core/lib/registry';
+import { getBackend, getEntryCodec } from '@/core/lib/registry';
 import { validateConfig } from '@/core/lib/validateConfig';
 import { selectDefaultSortableFields } from '@/core/reducers/collections';
 import { getIntegrations, selectIntegration } from '@/core/reducers/integrations';
@@ -522,8 +522,13 @@ export function applyDefaults(originalConfig: CmsConfig) {
         };
       });
 
-      if (config.editor && !collection.editor) {
-        collection.editor = { preview: config.editor.preview };
+      // The global `editor` settings are defaults; a collection's own win.
+      if (config.editor) {
+        collection.editor = {
+          preview: config.editor.preview,
+          notes: config.editor.notes,
+          ...collection.editor,
+        };
       }
     }
   });
@@ -597,6 +602,62 @@ async function getConfigFile(file: string, hintedFormat: ConfigFormat | undefine
     throw missingConfigCodecError(format);
   }
   return parseConfig(await response.text(), format);
+}
+
+export type CollectionAccess = 'edit' | 'view' | 'none';
+
+/**
+ * Per-collection access a backend may attach to the user it resolves from
+ * `authenticate()`/`restoreUser()` as `permissions`. Names absent from
+ * `collections` mean full access, so backends that never set it are
+ * unaffected. Independent of the scope-based `view_scopes`/`edit_scopes`
+ * checks in `core/lib/collectionAccess`, which keep applying on top.
+ */
+export interface BackendPermissions {
+  collections?: Record<string, CollectionAccess>;
+}
+
+/**
+ * Drops collections the user has no access to and strips create, delete and
+ * publish from view-only ones. UX only: the backend that proxies writes is the
+ * boundary.
+ */
+export function applyBackendPermissionFilter(
+  config: CmsConfig,
+  permissions?: BackendPermissions,
+): CmsConfig {
+  if (!permissions?.collections || isEmpty(permissions.collections)) {
+    return config;
+  }
+
+  const access = permissions.collections;
+  const collections = config.collections || [];
+  let changed = false;
+  const filteredCollections = collections.flatMap(collection => {
+    switch (access[collection.name]) {
+      case 'none':
+        changed = true;
+        return [];
+      case 'view':
+        changed = true;
+        return [{ ...collection, create: false, delete: false, publish: false }];
+      default:
+        return [collection];
+    }
+  });
+
+  return changed ? { ...config, collections: filteredCollections } : config;
+}
+
+/** Re-filters the config already in state once auth knows the user's permissions. */
+export function refilterConfigForPermissions(permissions: BackendPermissions) {
+  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+    const { config } = getState();
+    const filtered = applyBackendPermissionFilter(config, permissions);
+    if (filtered !== config) {
+      dispatch(configLoaded(filtered));
+    }
+  };
 }
 
 export function configLoaded(config: CmsConfig) {
@@ -710,6 +771,28 @@ export async function handleLocalBackend(originalConfig: CmsConfig) {
   });
 }
 
+/**
+ * Generic extension point: a backend class's static async
+ * `preloadConfig(config)` is awaited before the backend is constructed, so it
+ * can resolve its own config (Decap Turbo fetches the site's repo and keys
+ * from its control plane). Runs after `handleLocalBackend`, so a detected
+ * local proxy has already renamed the backend and wins.
+ */
+export async function applyBackendPreloadConfig(originalConfig: CmsConfig) {
+  const backendName = originalConfig.backend?.name;
+  const registered = backendName ? getBackend(backendName) : undefined;
+  const BackendClass = registered?.BackendClass as
+    | { preloadConfig?: (config: CmsConfig) => Promise<CmsConfig> }
+    | undefined;
+  const preloadConfig = BackendClass?.preloadConfig;
+
+  if (typeof preloadConfig !== 'function') {
+    return originalConfig;
+  }
+
+  return preloadConfig.call(BackendClass, originalConfig);
+}
+
 export function loadConfig(manualConfig: Partial<CmsConfig> = {}, onLoad: () => unknown) {
   if (typeof window !== 'undefined' && 'CMS_CONFIG' in window && window.CMS_CONFIG) {
     return configLoaded(window.CMS_CONFIG as CmsConfig);
@@ -730,7 +813,8 @@ export function loadConfig(manualConfig: Partial<CmsConfig> = {}, onLoad: () => 
       validateConfig(mergedConfig as unknown as Record<string, unknown>);
 
       const withLocalBackend = await handleLocalBackend(mergedConfig);
-      const normalizedConfig = normalizeConfig(withLocalBackend);
+      const withPreloadedBackend = await applyBackendPreloadConfig(withLocalBackend);
+      const normalizedConfig = normalizeConfig(withPreloadedBackend);
 
       const config = applyDefaults(normalizedConfig);
 

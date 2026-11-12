@@ -3,15 +3,19 @@ import type {
   CmsConfig,
   CmsCredentials,
   CmsDisplayURL,
+  CmsEditorApi,
   CmsEntryLock,
   CmsEntryLockOwner,
+  CmsFieldAction,
   CmsGetMediaPageOptions,
   CmsMediaCapabilities,
   CmsMediaPage,
   CmsPersistOptions,
   CmsUser,
 } from '@/lib/util/index';
+import type { DeployStatusImplementation } from './deployStatus';
 import type { BackendEntry, BackendFileRef, UnpublishedEntry } from './entry';
+import type { Note, NotesWatchCallbacks } from './notes';
 import type { Asset, MediaFile, PersistPayload } from './persist';
 
 /**
@@ -29,9 +33,10 @@ export type AuthComponent = ((props: any) => any) | (new(props: any) => any);
  * contract there is: entries cross the seam as {@link BackendEntry} with a
  * tagged `content` union, authorship is a structured `Author`, display labels
  * come from collection config rather than the backend, and the persist
- * payload is {@link PersistPayload}.
+ * payload is {@link PersistPayload}. The optional deploy-status methods are
+ * described with {@link DeployStatusImplementation}.
  */
-export interface BackendImplementation {
+export interface BackendImplementation extends DeployStatusImplementation {
   authComponent: () => AuthComponent;
   restoreUser: (user: CmsUser) => Promise<CmsUser>;
 
@@ -125,7 +130,37 @@ export interface BackendImplementation {
     extension: string,
     depth: number,
     pathRegex?: RegExp,
+    /**
+     * The free-text part of a search, when this listing serves one. A backend
+     * that can search server-side may narrow the result to it; one that
+     * cannot ignores it and core filters as usual.
+     */
+    searchTerm?: string,
+    /**
+     * Selects the i18n locale files `pathRegex` excludes: the listing wants
+     * one file per entry, the editor wants every locale. Advisory: a backend
+     * that caches can warm those files, and one that does not may ignore it.
+     * The returned entries must not include them either way.
+     */
+    localeSiblingRegex?: RegExp,
   ) => Promise<BackendEntry[]>;
+  /**
+   * True when `allEntriesByFolder` already matched `searchTerm` against entry
+   * bodies, so core's own search pass may include the body without changing
+   * results on backends that only search the listed fields.
+   */
+  searchesEntryBody?: boolean;
+  /**
+   * True when the backend serves listings from a cache that a save does not
+   * update in place, so core reloads the collection's entries after a save.
+   */
+  reloadEntriesAfterPersist?: boolean;
+  /**
+   * Experimental (may change or go away in any release): called once with
+   * the editor API (`CMS.editor`) and the field-action registry
+   * (`CMS.registerFieldAction`), for a backend that works with the open entry.
+   */
+  attachEditor?: (args: { editor: CmsEditorApi, registerFieldAction: (action: CmsFieldAction) => void }) => void;
   traverseCursor?: (
     cursor: Cursor,
     action: string,
@@ -186,13 +221,49 @@ export interface BackendImplementation {
    * stays open, so a long editing session doesn't go stale mid-edit.
    */
   refreshEntryLock?: (path: string, owner: CmsEntryLockOwner) => Promise<CmsEntryLock | null>;
+
+  /**
+   * Editor notes (optional capability; decaporg #7563): comments on an entry
+   * under the editorial workflow, shown in the editor's notes pane. A backend
+   * declares support by implementing `getNotes` and the mutations below. The
+   * `notesFormat` helpers re-exported from this module encode a note as a
+   * host comment the same way across backends.
+   */
+  getNotes?: (collection: string, slug: string) => Promise<Note[]>;
+  /** `entryTitle` names the thread a backend creates for the entry's first note. */
+  addNote?: (collection: string, slug: string, note: Omit<Note, 'id'>, entryTitle?: string) => Promise<Note>;
+  updateNote?: (collection: string, slug: string, noteId: string, updates: Partial<Note>) => Promise<Note>;
+  deleteNote?: (collection: string, slug: string, noteId: string) => Promise<void>;
+  toggleNoteResolution?: (collection: string, slug: string, noteId: string) => Promise<Note>;
+  /**
+   * Keep the open entry's notes current (optional): watch its thread and call
+   * back when it changes. `NotesPollingManager` (re-exported from this module)
+   * implements the watching on top of a small per-host API.
+   */
+  startNotesPolling?: (collection: string, slug: string, callbacks: NotesWatchCallbacks) => Promise<void>;
+  stopNotesPolling?: (collection: string, slug: string) => Promise<void>;
+  refreshNotesNow?: (collection: string, slug: string) => Promise<void>;
+  /**
+   * Reopen an entry's notes thread after the entry is unpublished (it was
+   * closed on publish), so notes can continue on the new unpublished entry.
+   */
+  reopenIssueForUnpublishedEntry?: (collection: string, slug: string) => Promise<void>;
 }
 
 /**
  * The constructor `registerBackend(name, BackendClass)` expects: instantiated
  * by the engine with the resolved config and any extra options.
  */
-export type BackendClass = new(
-  config: CmsConfig,
-  opts?: Record<string, unknown>,
-) => BackendImplementation;
+export type BackendClass =
+  & (new(
+    config: CmsConfig,
+    opts?: Record<string, unknown>,
+  ) => BackendImplementation)
+  & {
+    /**
+     * Resolves the backend's own config before the backend is constructed
+     * (optional). Core awaits it in `loadConfig`, after local-backend
+     * detection, so a running local proxy still takes over.
+     */
+    preloadConfig?: (config: CmsConfig) => Promise<CmsConfig>,
+  };

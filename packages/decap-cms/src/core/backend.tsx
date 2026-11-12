@@ -1,4 +1,4 @@
-import { flatten, get, set, sortBy, trim, uniq } from 'lodash-es';
+import { escapeRegExp, flatten, get, set, sortBy, trim, uniq } from 'lodash-es';
 
 import { rawContent } from '@/lib/backend/index';
 import {
@@ -22,10 +22,18 @@ import { FILES, FOLDER } from './constants/collectionTypes';
 import { status } from './constants/publishModes';
 import { resolveFormat } from './formats/formats';
 import { contentExists, entryDataFromContent, legacyRaw } from './lib/backendEntry';
-import { commitMessageFormatter, previewUrlFormatter, slugFormatter } from './lib/formatters';
+import {
+  commitMessageFormatter,
+  getSlugFormatter,
+  previewUrlFormatter,
+  slugByteBudget,
+  truncateSlug,
+  utf8ByteLength,
+} from './lib/formatters';
 import {
   formatI18nBackup,
-  getFilePaths,
+  getEntryFilePaths,
+  getFilePath,
   getI18nBackup,
   getI18nDataFiles,
   getI18nEntry,
@@ -36,11 +44,12 @@ import {
   hasI18n,
   I18N_STRUCTURE,
 } from './lib/i18n';
-import { getBackend, invokeEvent } from './lib/registry';
+import { getBackend, getEditorApi, invokeEvent, registerFieldAction } from './lib/registry';
 import { sanitizeChar } from './lib/urlHelper';
 import {
   selectAllowDeletion,
   selectAllowNewEntries,
+  selectEntryCollectionTitle,
   selectEntryPath,
   selectEntrySlug,
   selectFieldsComments,
@@ -60,6 +69,8 @@ import type {
   BackendEntry,
   BackendEntryContent,
   BackendImplementation,
+  Note,
+  NotesWatchCallbacks,
   UnpublishedEntry,
   UnpublishedEntryDiff,
 } from '@/lib/backend/index';
@@ -492,6 +503,22 @@ interface ImplementationInitOptions {
    * gets the login screen instead of every subsequent request failing.
    */
   onSessionExpired: () => void;
+  /**
+   * The stored user as it is now, not as this tab last saw it: another tab of
+   * the same CMS may have rotated the credentials since (through
+   * `updateUserCredentials`), and a backend whose refresh tokens are
+   * single-use must read the newest ones before spending its own.
+   */
+  retrieveUserCredentials: () => CmsCredentials | null;
+  /**
+   * For a backend that learns mid-session that its session is gone for good
+   * and cannot be resumed by logging in again in place (a membership that was
+   * removed, a session revoked server-side). Core logs the user out and shows
+   * `message` on the login page, once, instead of every later request failing
+   * on its own toast. Compare `onSessionExpired`, which keeps the user and
+   * offers re-auth over the open work.
+   */
+  onSessionInvalid: (message: string) => void;
 }
 
 type Implementation = BackendImplementation & {
@@ -517,30 +544,78 @@ function collectionDepth(collection: CmsCollectionState) {
   return depth;
 }
 
-function i18nRulestring(ruleString: string, { defaultLocale, structure }: I18nInfo): string {
+function i18nRulestring(
+  ruleString: string,
+  { defaultLocale, structure }: I18nInfo,
+  localePattern = defaultLocale,
+): string {
   if (structure === I18N_STRUCTURE.MULTIPLE_FOLDERS) {
-    return `${defaultLocale}\\/${ruleString}`;
+    return `${localePattern}\\/${ruleString}`;
   }
 
   if (structure === I18N_STRUCTURE.MULTIPLE_FILES) {
-    return `${ruleString}\\.${defaultLocale}\\..*`;
+    return `${ruleString}\\.${localePattern}\\..*`;
   }
 
   return ruleString;
 }
 
-function collectionRegex(collection: CmsCollectionState): RegExp | undefined {
-  let ruleString = '';
+function collectionRuleString(collection: CmsCollectionState): string {
+  return collection.path ? `${collection.folder}/${collection.path}`.replace(/{{.*}}/gm, '(.*)') : '';
+}
 
-  if (collection.path) {
-    ruleString = `${collection.folder}/${collection.path}`.replace(/{{.*}}/gm, '(.*)');
-  }
+function collectionRegex(collection: CmsCollectionState): RegExp | undefined {
+  let ruleString = collectionRuleString(collection);
 
   if (hasI18n(collection)) {
     ruleString = i18nRulestring(ruleString, getI18nInfo(collection) as I18nInfo);
   }
 
   return ruleString ? new RegExp(ruleString) : undefined;
+}
+
+/**
+ * The same selector as `collectionRegex`, for the i18n locales it leaves out,
+ * so a caching backend can warm them for the editor. Built from the same rule
+ * string so the two cannot drift; undefined when there is nothing extra.
+ */
+export function localeSiblingRegex(collection: CmsCollectionState): RegExp | undefined {
+  if (!hasI18n(collection)) {
+    return undefined;
+  }
+
+  const i18n = getI18nInfo(collection) as I18nInfo;
+  const { structure, defaultLocale, locales } = i18n;
+
+  if (structure === I18N_STRUCTURE.SINGLE_FILE) {
+    return undefined;
+  }
+
+  const siblings = (locales || []).filter(locale => locale !== defaultLocale);
+  if (siblings.length === 0) {
+    return undefined;
+  }
+
+  const ruleString = i18nRulestring(
+    collectionRuleString(collection),
+    i18n,
+    `(?:${siblings.map(escapeRegExp).join('|')})`,
+  );
+
+  return ruleString ? new RegExp(ruleString) : undefined;
+}
+
+/**
+ * The entry's title as the CMS displays it, or undefined. Guarded: it walks
+ * entry data that a preSave handler may have replaced with a shape it does not
+ * expect, and it runs after (or for) a save that must not fail because of it.
+ */
+export function safeEntryLabel(collection: CmsCollectionState, entry: CmsEntry): string | undefined {
+  try {
+    return selectEntryCollectionTitle(collection, entry) || undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 // Discriminates the `collectionEntries` cursor data shape (the only cursor
@@ -567,6 +642,19 @@ export class Backend {
   backupSync: AsyncLock;
 
   private sessionExpiredListeners = new Set<() => void>();
+  private sessionInvalidListeners = new Set<(message: string) => void>();
+
+  /**
+   * Subscribe to a session the implementation reports dead for good (see
+   * `ImplementationInitOptions.onSessionInvalid`). Returns the unsubscribe
+   * function. The app layer wires this to `sessionInvalidated`.
+   */
+  onSessionInvalid(listener: (message: string) => void): () => void {
+    this.sessionInvalidListeners.add(listener);
+    return () => {
+      this.sessionInvalidListeners.delete(listener);
+    };
+  }
 
   /**
    * Subscribe to unrecoverable session expiry reported by the implementation
@@ -606,6 +694,10 @@ export class Backend {
       onSessionExpired: () => {
         for (const listener of this.sessionExpiredListeners) listener();
       },
+      retrieveUserCredentials: this.retrieveUserCredentials,
+      onSessionInvalid: (message: string) => {
+        for (const listener of this.sessionInvalidListeners) listener(message);
+      },
     });
     this.backendName = backendName;
     this.authStore = authStore;
@@ -613,6 +705,14 @@ export class Backend {
       throw new Error('Cannot instantiate a Backend with no implementation');
     }
     this.backupSync = asyncLock();
+
+    // Optional, duck-typed: a backend that works with the open entry (the
+    // Decap Turbo editor bridge) receives the editor API and the field-action
+    // registry here, so it needs no dependency on core.
+    const editor = getEditorApi();
+    if (editor && typeof this.implementation.attachEditor === 'function') {
+      this.implementation.attachEditor({ editor, registerFieldAction });
+    }
   }
 
   async status() {
@@ -663,6 +763,12 @@ export class Backend {
       this.authStore!.store(this.user as CmsUser);
       return this.user;
     }
+  };
+
+  /** The stored user as it is now: another tab may have rotated single-use tokens. */
+  retrieveUserCredentials = (): CmsCredentials | null => {
+    const storedUser = this.authStore?.retrieve();
+    return storedUser && storedUser.backendName === this.backendName ? storedUser : null;
   };
 
   authComponent() {
@@ -735,8 +841,25 @@ export class Backend {
 
     if (unpublishedEntry) return unpublishedEntry;
 
+    // For multiple_files/multiple_folders i18n the entry does not live at
+    // `path` itself but at the localised variants of it, so probing `path`
+    // always misses, and a miss here licenses reusing the slug, which
+    // overwrites the existing entry's files. The default locale is written
+    // for every entry, so one probe still answers the question.
+    let entryPath = path;
+    if (hasI18n(collection)) {
+      const { structure, defaultLocale } = getI18nInfo(collection) as I18nInfo;
+      entryPath = getFilePath(
+        structure as I18N_STRUCTURE,
+        selectFolderEntryExtension(collection),
+        path,
+        slug,
+        defaultLocale,
+      );
+    }
+
     const publishedEntry = await this.implementation
-      .getEntry(path, useWorkflow)
+      .getEntry(entryPath, useWorkflow)
       .then(loaded => contentExists(loaded.content))
       .catch(() => false);
 
@@ -751,14 +874,31 @@ export class Backend {
     customPath: string | undefined,
   ) {
     const slugConfig = config.slug;
-    let slug: string;
+    // Capped in bytes, not characters: under the default `unicode` encoding a
+    // Vietnamese or CJK title keeps its characters raw at 2-4 bytes each, so
+    // even a slug within `max_length` could produce an editorial workflow
+    // branch GitHub refuses (refs are limited to 255 bytes). Not applied to a
+    // nested collection's custom path: that slug is derived from a path the
+    // editor typed, which is saved as-is and must keep matching it.
+    let maxBytes = Infinity;
+    let formatSlug: (suffix?: string) => string;
     if (customPath) {
-      slug = slugFromCustomPath(collection, customPath);
+      const slug = slugFromCustomPath(collection, customPath);
+      formatSlug = (suffix = '') => `${slug}${suffix}`;
     } else {
-      slug = slugFormatter(collection, entryData, slugConfig);
+      maxBytes = slugByteBudget(collection, config);
+      formatSlug = getSlugFormatter(collection, entryData, slugConfig);
+    }
+    // Over the cap, the slug in front of the suffix gives way, so the suffix
+    // stays whole and distinct. A custom path has no cap (Infinity).
+    function fitSlug(suffix = '') {
+      const slug = formatSlug(suffix);
+      return utf8ByteLength(slug) > maxBytes
+        ? `${truncateSlug(slug, maxBytes - utf8ByteLength(suffix), slugConfig)}${suffix}`
+        : slug;
     }
     let i = 1;
-    let uniqueSlug = slug;
+    let uniqueSlug = fitSlug();
 
     // Check for duplicate slug in loaded entities store first before repo
     while (
@@ -770,7 +910,9 @@ export class Backend {
         selectUseWorkflow(config),
       ))
     ) {
-      uniqueSlug = `${slug}${sanitizeChar(' ', slugConfig)}${i++}`;
+      // With a collection `path`, the suffix goes after the slug in it, so
+      // `post/index` becomes `post-1/index` rather than `post/index-1`.
+      uniqueSlug = fitSlug(`${sanitizeChar(' ', slugConfig)}${i++}`);
     }
     return uniqueSlug;
   }
@@ -787,19 +929,21 @@ export class Backend {
         meta: { path: prepareMetaPath(file.path, collection) },
       });
     });
-    // If this collection has a "filter" property, filter entries accordingly
-    const collectionFilter = collection.filter;
-    const filteredEntries = collectionFilter
-      ? this.filterEntries({ entries: formattedEntries }, collectionFilter)
+    // Group i18n entries before filtering them, so the filter is matched
+    // against the default locale data of a single, merged entry. Entries of a
+    // `single_file` collection keep their data nested under a locale key until
+    // they're grouped, so filtering first never matched anything; for
+    // `multiple_files`/`multiple_folders` it dropped translations whose file
+    // didn't repeat the filter field.
+    const groupedEntries = hasI18n(collection)
+      ? groupEntries(collection, selectFolderEntryExtension(collection), formattedEntries)
       : formattedEntries;
 
-    if (hasI18n(collection)) {
-      const extension = selectFolderEntryExtension(collection);
-      const groupedEntries = groupEntries(collection, extension, filteredEntries);
-      return groupedEntries;
-    }
-
-    return filteredEntries;
+    // If this collection has a "filter" property, filter entries accordingly
+    const collectionFilter = collection.filter;
+    return collectionFilter
+      ? this.filterEntries({ entries: groupedEntries }, collectionFilter)
+      : groupedEntries;
   }
 
   async listEntries(collection: CmsCollectionState) {
@@ -848,7 +992,7 @@ export class Backend {
   // repeats the process. Once there is no available "next" action, it
   // returns all the collected entries. Used to retrieve all entries
   // for local searches and queries.
-  async listAllEntries(collection: CmsCollectionState) {
+  async listAllEntries(collection: CmsCollectionState, searchTerm?: string) {
     if (collection.folder && this.implementation.allEntriesByFolder) {
       const depth = collectionDepth(collection);
       const extension = selectFolderEntryExtension(collection);
@@ -858,6 +1002,9 @@ export class Backend {
           extension,
           depth,
           collectionRegex(collection),
+          searchTerm,
+          // The locales this listing leaves out, for a caching backend to warm.
+          localeSiblingRegex(collection),
         )
         .then(entries => this.processEntries(entries, collection));
     }
@@ -878,8 +1025,9 @@ export class Backend {
     searchFields: string[],
     searchTerm: string,
   ) {
-    const collectionEntries = await this.listAllEntries(collection);
     const { clauses, freeText } = parseSearchTerm(searchTerm);
+    // Only the free text goes to the backend: field clauses are matched here.
+    const collectionEntries = await this.listAllEntries(collection, freeText || undefined);
     const matchingEntries = collectionEntries.filter(entry => matchesSearchClauses(entry, searchFields, clauses));
     if (!freeText) {
       return matchingEntries.map((original, index) => ({ original, score: 100, index }));
@@ -900,9 +1048,16 @@ export class Backend {
     // collection, load it, search, and call onCollectionResults with
     // its results.
     const errors: Error[] = [];
+    const searchesEntryBody = this.implementation.searchesEntryBody === true;
     const collectionEntriesRequests = collections
       .map(collection => {
         const searchFields = getCollectionSearchFields(collection);
+        // Fuzzy matching is subsequence matching, so a long body matches
+        // almost any short term. Only a backend that already matched the body
+        // server-side opts in, so this pass does not drop its hits.
+        if (searchesEntryBody && collection.type !== FILES && !searchFields.includes('body')) {
+          searchFields.push('body');
+        }
         return this.searchCollectionEntries(collection, searchFields, searchTerm);
       })
       .map(p =>
@@ -1251,6 +1406,98 @@ export class Backend {
     }
   }
 
+  // -- Editor notes (decaporg #7563) ------------------------------------------
+
+  /** Whether the backend implements editor notes at all. */
+  supportsNotes() {
+    return typeof this.implementation.getNotes === 'function';
+  }
+
+  async getNotes(collection: string, slug: string): Promise<Note[]> {
+    if (typeof this.implementation.getNotes === 'function') {
+      return this.implementation.getNotes(collection, slug);
+    }
+    console.warn(`Backend '${this.backendName}' does not support notes`);
+    return [];
+  }
+
+  async addNote(collection: string, slug: string, note: Omit<Note, 'id'>, entryTitle?: string): Promise<Note> {
+    if (typeof this.implementation.addNote === 'function') {
+      return this.implementation.addNote(collection, slug, note, entryTitle);
+    }
+    throw new Error(`Backend '${this.backendName}' does not support adding notes`);
+  }
+
+  async updateNote(collection: string, slug: string, noteId: string, updates: Partial<Note>): Promise<Note> {
+    if (typeof this.implementation.updateNote === 'function') {
+      return this.implementation.updateNote(collection, slug, noteId, updates);
+    }
+    throw new Error(`Backend '${this.backendName}' does not support updating notes`);
+  }
+
+  async deleteNote(collection: string, slug: string, noteId: string): Promise<void> {
+    if (typeof this.implementation.deleteNote === 'function') {
+      return this.implementation.deleteNote(collection, slug, noteId);
+    }
+    throw new Error(`Backend '${this.backendName}' does not support deleting notes`);
+  }
+
+  async toggleNoteResolution(collection: string, slug: string, noteId: string): Promise<Note> {
+    if (typeof this.implementation.toggleNoteResolution === 'function') {
+      return this.implementation.toggleNoteResolution(collection, slug, noteId);
+    }
+    throw new Error(`Backend '${this.backendName}' does not support resolving notes`);
+  }
+
+  /** Whether the backend can keep notes current while an entry is open. */
+  supportsNotesPolling() {
+    return typeof this.implementation.startNotesPolling === 'function';
+  }
+
+  async startNotesPolling(collection: string, slug: string, callbacks: NotesWatchCallbacks): Promise<void> {
+    return this.implementation.startNotesPolling?.(collection, slug, callbacks);
+  }
+
+  async stopNotesPolling(collection: string, slug: string): Promise<void> {
+    return this.implementation.stopNotesPolling?.(collection, slug);
+  }
+
+  async refreshNotesNow(collection: string, slug: string): Promise<void> {
+    return this.implementation.refreshNotesNow?.(collection, slug);
+  }
+
+  async reopenIssueForUnpublishedEntry(collection: string, slug: string): Promise<void> {
+    return this.implementation.reopenIssueForUnpublishedEntry?.(collection, slug);
+  }
+
+  /**
+   * Every slug a collection already holds: published entries, the slugs the
+   * caller already knows about and, with the editorial workflow, unpublished
+   * entries. Used to enforce a collection's `limit`.
+   */
+  async entrySlugsForCollectionLimit(
+    collection: CmsCollectionState,
+    config: CmsConfig,
+    usedSlugs: string[] = [],
+  ): Promise<Set<string>> {
+    const publishedEntries = await this.listAllEntries(collection);
+    const slugs = new Set<string>([...publishedEntries.map(entry => entry.slug), ...usedSlugs]);
+
+    if (selectUseWorkflow(config) && this.implementation.unpublishedEntries) {
+      const ids = await this.implementation.unpublishedEntries();
+      const unpublishedEntries = await Promise.all(
+        ids.map(id => this.implementation.unpublishedEntry({ id })),
+      );
+      for (const entry of unpublishedEntries) {
+        if (entry.collection === collection.name) {
+          slugs.add(entry.slug);
+        }
+      }
+    }
+
+    return slugs;
+  }
+
   async unpublishedEntries(collections: CmsCollectionState[]) {
     const ids = await this.implementation.unpublishedEntries!();
     const entries = (
@@ -1476,6 +1723,15 @@ export class Backend {
       if (!selectAllowNewEntries(collection)) {
         throw new Error('Not allowed to create new entries in this collection');
       }
+      const limit = collection.limit;
+      if (
+        collection.type === FOLDER
+        && limit !== undefined
+        && limit !== null
+        && (await this.entrySlugsForCollectionLimit(collection, config, usedSlugs)).size >= limit
+      ) {
+        throw new Error(`Entry limit of ${limit} reached for collection ${collection.name}`);
+      }
       const slug = await this.generateUniqueSlug(
         collection,
         entryDraft.entry?.data as Record<string, unknown>,
@@ -1544,6 +1800,12 @@ export class Backend {
       collectionName,
       useWorkflow,
       hasSubfolders,
+      // The entry's title and path, for a backend that records them against
+      // the commit (the Deploys page names a colleague's save by its entry
+      // rather than a bare sha); every other backend ignores them. The commit
+      // message cannot stand in: it carries the slug and is configurable.
+      entryLabel: safeEntryLabel(collection, entryDraft.entry),
+      entryPath: path,
       ...updatedOptions,
     };
 
@@ -1649,7 +1911,7 @@ export class Backend {
     await this.invokePreUnpublishEvent(entry);
     let paths = [path];
     if (hasI18n(collection)) {
-      paths = getFilePaths(collection, extension, path, slug);
+      paths = getEntryFilePaths(collection, extension, path, slug, entry);
     }
     await this.implementation.deleteFiles(paths, commitMessage);
 

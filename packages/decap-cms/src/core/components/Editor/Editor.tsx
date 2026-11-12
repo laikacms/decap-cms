@@ -52,6 +52,10 @@ function Editor({ newRecord = false, collectionName, slug, renderNotFound }: Edi
     fields,
     user,
     hasChanged,
+    canCreateNewEntry,
+    notesEnabled,
+    notes,
+    handleNotesChange,
     displayUrl,
     hasWorkflow,
     useOpenAuthoring,
@@ -196,6 +200,8 @@ function Editor({ newRecord = false, collectionName, slug, renderNotFound }: Edi
       fields={fields!}
       fieldsMetaData={entryDraft.fieldsMetaData as any}
       fieldsErrors={entryDraft.fieldsErrors as any}
+      fieldRevisions={entryDraft.fieldRevisions}
+      fieldHighlights={entryDraft.fieldHighlights}
       onChange={handleChangeDraftField}
       onValidate={handleValidate}
       onPersist={handlePersistEntry}
@@ -211,6 +217,7 @@ function Editor({ newRecord = false, collectionName, slug, renderNotFound }: Edi
       showDelete={showDelete ?? false}
       user={user}
       hasChanged={hasChanged ?? false}
+      canCreateNewEntry={canCreateNewEntry}
       displayUrl={displayUrl}
       hasWorkflow={hasWorkflow ?? false}
       useOpenAuthoring={useOpenAuthoring ?? false}
@@ -222,6 +229,9 @@ function Editor({ newRecord = false, collectionName, slug, renderNotFound }: Edi
       deployPreview={deployPreview}
       loadDeployPreview={handleLoadDeployPreview}
       editorBackLink={editorBackLink}
+      notesEnabled={notesEnabled}
+      notes={notes}
+      onNotesChange={handleNotesChange}
       t={t}
     />
   );

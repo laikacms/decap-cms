@@ -245,6 +245,10 @@ export type CmsPersistOptions = {
   unpublished?: boolean | undefined,
   status?: string | undefined,
   hasSubfolders?: boolean | undefined,
+  /** The entry's title as the CMS displays it; descriptive only. */
+  entryLabel?: string | undefined,
+  /** The entry's data file path; descriptive only. */
+  entryPath?: string | undefined,
 };
 
 export type CmsDeleteOptions = Record<string, unknown>;

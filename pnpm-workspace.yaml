@@ -60,6 +60,7 @@ catalog:
   '@lexical/text': '^0.48.0'
   '@lexical/utils': '^0.48.0'
   '@lezer/highlight': '^1.2.3'
+  '@modelcontextprotocol/sdk': '^1.32.2'
   '@octokit/rest': '^22.0.1'
   '@octokit/types': '^16.0.0'
   '@playwright/test': '^1.61.1'

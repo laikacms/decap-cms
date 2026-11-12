@@ -11,6 +11,7 @@ import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useShortcut } from '@/core/hooks/useShortcut';
 import { translate } from '@/core/i18n';
 import { canEditCollection } from '@/core/lib/collectionAccess';
+import { selectUserIdentity } from '@/core/lib/userHelper';
 import { Link } from '@/core/routing/Link';
 import {
   buttons,
@@ -299,6 +300,11 @@ interface EditorToolbarProps {
   onCancelSchedulePublish?: () => void;
   user?: CmsUser;
   hasChanged?: boolean;
+  /**
+   * Whether a new entry can be created in this collection (`create` plus any
+   * `limit`). Falls back to `collection.create` when not provided.
+   */
+  canCreateNewEntry?: boolean;
   displayUrl?: string;
   collection: Collection;
   hasWorkflow?: boolean;
@@ -323,6 +329,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
     isDeleting,
     isModification,
     hasChanged,
+    canCreateNewEntry,
     hasUnpublishedChanges,
     useOpenAuthoring,
     currentStatus,
@@ -681,7 +688,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
 
   function renderSimpleControls() {
     if (!hasEditAccess) return null;
-    const canCreate = collection.create;
+    const canCreate = canCreateNewEntry ?? collection.create;
     return (
       <>
         {!isNewEntry && !hasChanged
@@ -702,7 +709,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
 
   function renderWorkflowControls() {
     if (!hasEditAccess) return null;
-    const canCreate = collection.create;
+    const canCreate = canCreateNewEntry ?? collection.create;
     const canPublish = !!(collection.publish && !useOpenAuthoring);
     const canDelete = collection.delete ?? true;
 
@@ -794,6 +801,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
         <SettingsDropdown
           displayUrl={displayUrl}
           imageUrl={user?.avatar_url}
+          identity={selectUserIdentity(user)}
           onLogoutClick={onLogoutClick}
         />
       </ToolbarSectionMeta>

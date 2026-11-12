@@ -790,6 +790,9 @@ export default class API {
       method: 'PUT',
       url: `${this.repoURL}/merge_requests/${mergeRequest.iid}/merge`,
       params: {
+        // Merge only the head that was reviewed: if the branch moved since it
+        // was loaded, GitLab refuses instead of publishing unseen commits.
+        sha: mergeRequest.sha,
         merge_commit_message: MERGE_COMMIT_MESSAGE,
         squash_commit_message: MERGE_COMMIT_MESSAGE,
         squash: this.squashMerges,

@@ -11,6 +11,7 @@ import {
   move,
   writeFile,
 } from '@/dev-server/middlewares/utils/fs';
+import { resolveExistingRepoPath } from '@/dev-server/middlewares/utils/path';
 import { defaultSchema, validateRequest } from '@/dev-server/middlewares/validation';
 import { pathTraversal } from '@/dev-server/middlewares/validation/customValidators';
 import {
@@ -21,7 +22,7 @@ import {
   labelToStatus,
   parseContentKey,
   statusToLabel,
-} from '@/lib/util/index';
+} from '@/lib/util/APIUtils';
 import { createMutex } from '@/lib/util/mutex';
 import { parse } from '@/lib/util/what-the-diff';
 
@@ -95,20 +96,17 @@ async function commitEntry(
 ) {
   // save entry content
   await Promise.all(
-    dataFiles.map(dataFile => writeFile(path.join(repoPath, dataFile.path), dataFile.raw)),
+    dataFiles.map(dataFile => writeFile(repoPath, dataFile.path, dataFile.raw)),
   );
   // save assets
   await Promise.all(
-    assets.map(a => writeFile(path.join(repoPath, a.path), Buffer.from(a.content, a.encoding))),
+    assets.map(a => writeFile(repoPath, a.path, Buffer.from(a.content, a.encoding))),
   );
   if (dataFiles.every(dataFile => dataFile.newPath)) {
-    dataFiles.forEach(async dataFile => {
-      await move(
-        path.join(repoPath, dataFile.path),
-        path.join(repoPath, dataFile.newPath!),
-        hasSubfolders,
-      );
-    });
+    // Awaited: the rename must finish before the commit below.
+    await Promise.all(
+      dataFiles.map(dataFile => move(repoPath, dataFile.path, dataFile.newPath!, hasSubfolders)),
+    );
   }
 
   // commits files
@@ -347,7 +345,7 @@ export function localGitMiddleware({ repoPath, logger }: GitOptions) {
               const toDelete = diffs.filter(
                 d => d.binary && !assets.map(a => a.path).includes(d.path),
               );
-              await Promise.all(toDelete.map(f => fs.unlink(path.join(repoPath, f.path))));
+              await Promise.all(toDelete.map(async f => fs.unlink(await resolveExistingRepoPath(repoPath, f.path))));
               await commitEntry(
                 git,
                 repoPath,
@@ -422,10 +420,7 @@ export function localGitMiddleware({ repoPath, logger }: GitOptions) {
           } = body.params as PersistMediaParams;
 
           const file = await runOnBranch(git, branch, async () => {
-            await writeFile(
-              path.join(repoPath, asset.path),
-              Buffer.from(asset.content, asset.encoding),
-            );
+            await writeFile(repoPath, asset.path, Buffer.from(asset.content, asset.encoding));
             await commit(git, commitMessage);
             return readMediaFile(repoPath, asset.path);
           });
@@ -481,11 +476,13 @@ export function localGitMiddleware({ repoPath, logger }: GitOptions) {
 
 type Options = {
   logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>,
+  /** The repository to serve. Falls back to GIT_REPO_DIRECTORY, then the current directory. */
+  repoPath?: string | undefined,
 };
 
 export async function registerMiddleware(app: DevServerApp, options: Options) {
   const { logger } = options;
-  const repoPath = path.resolve(process.env.GIT_REPO_DIRECTORY || process.cwd());
+  const repoPath = path.resolve(options.repoPath || process.env.GIT_REPO_DIRECTORY || process.cwd());
   await validateRepo({ repoPath });
   app.post('/api/v1', validateRequest(getSchema({ repoPath })));
   app.post('/api/v1', localGitMiddleware({ repoPath, logger }));

@@ -12,7 +12,9 @@ export type CmsBackendType =
   | 'bitbucket'
   | 'test-repo'
   | 'proxy'
-  | 'local-fs';
+  | 'local-fs'
+  | 'turbo-github'
+  | 'turbo-gitlab';
 
 export interface CmsBackend {
   name: CmsBackendType;
@@ -50,6 +52,32 @@ export interface CmsBackend {
   gateway_url?: string;
   status_endpoint?: string;
   graphql_api_root?: string;
+  /** Decap Turbo: the site's id in Turbo; the rest of its backend config is fetched from the control plane. */
+  turbo_site_id?: string;
+  /** Decap Turbo: where `preloadConfig` fetches the site's defaults from. */
+  turbo_config_url?: string;
+  /** Decap Turbo: the Turbo dashboard the login popup and links point at. */
+  turbo_admin_url?: string;
+  /** Decap Turbo: the Supabase project ref. Set with `supabase_anon_key` to configure without the control plane. */
+  supabase_app_id?: string;
+  supabase_anon_key?: string;
+  /**
+   * Decap Turbo, experimental: set true to turn on the editor bridge (AI
+   * agents setting fields in the open entry). Off by default.
+   */
+  editor_bridge?: boolean;
+  /**
+   * Decap Turbo: deploy status (the "your change is live" notifications and
+   * the Deploys page). On by default; `false` turns it off, an object turns
+   * parts off or names the host whose success counts as live.
+   */
+  deploy_status?:
+    | boolean
+    | { enabled?: boolean, notifications?: boolean, page?: boolean, primary_target?: string };
+  /** Decap Turbo: the commit author email when the signed-in editor has none. */
+  commit_author_email?: string;
+  /** Decap Turbo: older spelling of `commit_author_email`. */
+  noreply_email?: string;
   commit_messages?: {
     create?: string,
     update?: string,
@@ -96,6 +124,11 @@ export type CmsEntryLock = {
 
 export interface CmsRegistryBackend {
   init: (config: CmsConfig, opts?: Record<string, unknown>) => BackendImplementation;
+  /**
+   * The registered class itself, so core can reach its static hooks (e.g.
+   * `preloadConfig`) before an instance exists.
+   */
+  BackendClass?: unknown;
 }
 
 export type CmsBackendObject = {
@@ -141,6 +174,15 @@ export type CmsBackendInitConfig = {
     cms_label_prefix?: string,
     api_version?: string,
     status_endpoint?: string,
+    turbo_site_id?: string,
+    turbo_config_url?: string,
+    turbo_admin_url?: string,
+    supabase_app_id?: string,
+    supabase_anon_key?: string,
+    editor_bridge?: boolean,
+    deploy_status?: boolean | { enabled?: boolean, notifications?: boolean, page?: boolean, primary_target?: string },
+    commit_author_email?: string,
+    noreply_email?: string,
   },
   auth?: {
     use_oidc?: boolean,

@@ -718,6 +718,96 @@ describe('Backend', () => {
   });
 
   describe('persistEntry', () => {
+    // decaporg #7451: collection size limit.
+    describe('collection limit', () => {
+      function setup({ limit, published = ['a', 'b'], unpublished = [] as string[], workflow = false }: {
+        limit?: number,
+        published?: string[],
+        unpublished?: string[],
+        workflow?: boolean,
+      }) {
+        const implementation = {
+          init: vi.fn(() => implementation),
+          persistEntry: vi.fn(),
+          unpublishedEntries: vi.fn().mockResolvedValue(unpublished.map(slug => `id-${slug}`)),
+          unpublishedEntry: vi.fn(({ id }: { id: string }) =>
+            Promise.resolve({ collection: 'posts', slug: id.replace('id-', '') })
+          ),
+        };
+        const config = {
+          backend: { commit_messages: 'commit-messages' },
+          ...(workflow && { publish_mode: 'editorial_workflow' }),
+        };
+        const collection = {
+          name: 'posts',
+          type: FOLDER,
+          create: true,
+          folder: 'posts',
+          ...(limit !== undefined && { limit }),
+        };
+        const backend = new Backend(implementation as any, { config, backendName: 'github' } as any);
+        backend.currentUser = vi.fn().mockResolvedValue({ login: 'login', name: 'name' });
+        backend.entryToRaw = vi.fn().mockReturnValue('content');
+        backend.invokePreSaveEvent = vi.fn().mockResolvedValue(undefined);
+        backend.listAllEntries = vi.fn().mockResolvedValue(published.map(slug => ({ slug })));
+        backend.generateUniqueSlug = vi.fn().mockResolvedValue('new-post');
+        return { backend, implementation, config, collection };
+      }
+
+      const newDraft = { entry: { newRecord: true, data: { title: 'New post' } } };
+
+      it('refuses a new entry once the limit is reached', async () => {
+        const { backend, implementation, config, collection } = setup({ limit: 2 });
+
+        await expect(
+          backend.persistEntry({ config, collection, entryDraft: newDraft, assetProxies: [], usedSlugs: [] } as any),
+        ).rejects.toThrow('Entry limit of 2 reached for collection posts');
+        expect(implementation.persistEntry).not.toHaveBeenCalled();
+      });
+
+      it('saves a new entry below the limit', async () => {
+        const { backend, implementation, config, collection } = setup({ limit: 3 });
+
+        await backend.persistEntry(
+          { config, collection, entryDraft: newDraft, assetProxies: [], usedSlugs: [] } as any,
+        );
+        expect(implementation.persistEntry).toHaveBeenCalledTimes(1);
+      });
+
+      it('counts unpublished entries with the editorial workflow', async () => {
+        const { backend, implementation, config, collection } = setup({
+          limit: 3,
+          unpublished: ['b', 'c'],
+          workflow: true,
+        });
+
+        await expect(
+          backend.persistEntry({ config, collection, entryDraft: newDraft, assetProxies: [], usedSlugs: [] } as any),
+        ).rejects.toThrow('Entry limit of 3 reached');
+        expect(implementation.persistEntry).not.toHaveBeenCalled();
+      });
+
+      it('still saves changes to an existing entry at the limit', async () => {
+        const { backend, implementation, config, collection } = setup({ limit: 2 });
+        const existingDraft = { entry: { newRecord: false, slug: 'a', path: 'posts/a.md', data: { title: 'A' } } };
+
+        await backend.persistEntry(
+          { config, collection, entryDraft: existingDraft, assetProxies: [], usedSlugs: [] } as any,
+        );
+        expect(implementation.persistEntry).toHaveBeenCalledTimes(1);
+      });
+
+      it('ignores collections without a limit', async () => {
+        const { backend, implementation, config, collection } = setup({ published: ['a', 'b', 'c', 'd'] });
+
+        await backend.persistEntry(
+          { config, collection, entryDraft: newDraft, assetProxies: [], usedSlugs: [] } as any,
+        );
+        expect(backend.listAllEntries).not.toHaveBeenCalled();
+        expect(implementation.persistEntry).toHaveBeenCalledTimes(1);
+      });
+    });
+
     it('should update the draft with the new entry returned by preSave event', async () => {
       const implementation = {
         init: vi.fn(() => implementation),
@@ -846,6 +936,48 @@ describe('Backend', () => {
       expect(entryPassedToRaw.slug).toBe('config');
       expect(entryPassedToRaw.path).toBe('data/config.json');
       expect(entryPassedToRaw.data.title).toBe('modified');
+    });
+  });
+
+  describe('deleteEntry', () => {
+    function setup(entry: Record<string, unknown> | undefined) {
+      const implementation = { init: vi.fn(() => implementation), deleteFiles: vi.fn().mockResolvedValue(undefined) };
+      const config = { backend: { commit_messages: 'commit-messages' } };
+      const collection = {
+        name: 'posts',
+        type: FOLDER,
+        folder: 'content/posts',
+        extension: 'md',
+        delete: true,
+        i18n: { structure: 'multiple_files', locales: ['en', 'de', 'si'], default_locale: 'en' },
+      };
+      const backend = new Backend(implementation as any, { config, backendName: 'gitlab' } as any);
+      backend.currentUser = vi.fn().mockResolvedValue({ login: 'login', name: 'name' });
+      backend.invokePreUnpublishEvent = vi.fn().mockResolvedValue(undefined);
+      backend.invokePostUnpublishEvent = vi.fn().mockResolvedValue(undefined);
+      const state = { config, entries: { entities: entry ? { 'posts.test': entry } : {} } };
+      return { backend, implementation, state, collection };
+    }
+
+    it('deletes only the locale files an i18n entry has', async () => {
+      // GitLab rejects a commit that deletes a file which does not exist, so a
+      // locale nobody filled in must not be named.
+      const { backend, implementation, state, collection } = setup({ slug: 'test', i18n: {} });
+
+      await backend.deleteEntry(state as any, collection as any, 'test');
+
+      expect(implementation.deleteFiles).toHaveBeenCalledWith(['content/posts/test.en.md'], expect.any(String));
+    });
+
+    it('deletes every locale file the entry has data for', async () => {
+      const { backend, implementation, state, collection } = setup({ slug: 'test', i18n: { de: { data: {} } } });
+
+      await backend.deleteEntry(state as any, collection as any, 'test');
+
+      expect(implementation.deleteFiles).toHaveBeenCalledWith(
+        ['content/posts/test.en.md', 'content/posts/test.de.md'],
+        expect.any(String),
+      );
     });
   });
 
@@ -1000,6 +1132,259 @@ describe('Backend', () => {
       await expect(backend.generateUniqueSlug(collection, entry, {}, [])).resolves.toBe(
         'sub_dir/some-post-title-1',
       );
+    });
+
+    it('should probe the localised path for multiple_files i18n collections', async () => {
+      vi.mocked(sanitizeSlug).mockReturnValue('some-post-title');
+      vi.mocked(sanitizeChar).mockReturnValue('-');
+      const notFound = () => Promise.reject(Object.assign(new Error('Not Found'), { status: 404 }));
+      const implementation = {
+        init: vi.fn(() => implementation),
+        // Only the localised file exists, which is the real shape on disk.
+        getEntry: vi.fn((p: string) =>
+          p === 'posts/some-post-title.en.md'
+            ? Promise.resolve({ file: { path: p }, content: { kind: 'raw', raw: 'data' } })
+            : notFound()
+        ),
+      };
+      const collection = {
+        name: 'posts',
+        fields: [{ name: 'title' }],
+        type: FOLDER,
+        folder: 'posts',
+        slug: '{{slug}}',
+        i18n: { structure: 'multiple_files', locales: ['en', 'de'], default_locale: 'en' },
+      };
+      const backend = new Backend(implementation as any, { config: {}, backendName: 'github' } as any);
+
+      // Probing the unlocalised 'posts/some-post-title.md' would miss, and the
+      // caller would reuse the slug and overwrite the existing entry.
+      await expect(
+        backend.generateUniqueSlug(collection as any, { title: 'some post title' }, {} as any, [], undefined),
+      ).resolves.toBe('some-post-title-1');
+      expect(implementation.getEntry.mock.calls[0][0]).toBe('posts/some-post-title.en.md');
+    });
+
+    it('should suffix the slug placeholder before a fixed path filename', async () => {
+      vi.mocked(sanitizeSlug).mockReturnValue('some-post-title');
+      vi.mocked(sanitizeChar).mockReturnValue('-');
+      const exists = { file: { path: 'x' }, content: { kind: 'raw', raw: 'data' } };
+      const implementation = {
+        init: vi.fn(() => implementation),
+        getEntry: vi.fn().mockResolvedValueOnce(exists).mockResolvedValueOnce(exists).mockResolvedValueOnce(undefined),
+      };
+      const collection = {
+        name: 'posts',
+        fields: [{ name: 'title' }],
+        type: FOLDER,
+        folder: 'posts',
+        slug: '{{slug}}',
+        path: '{{slug}}/index',
+      };
+      const backend = new Backend(implementation as any, { config: {}, backendName: 'github' } as any);
+
+      await expect(
+        backend.generateUniqueSlug(collection as any, { title: 'some post title' }, {} as any, [], undefined),
+      ).resolves.toBe('some-post-title-2/index');
+      expect(implementation.getEntry.mock.calls.map(call => call[0])).toEqual([
+        'posts/some-post-title/index.md',
+        'posts/some-post-title-1/index.md',
+        'posts/some-post-title-2/index.md',
+      ]);
+    });
+
+    it('keeps a nested collision candidate distinct within the byte cap', async () => {
+      const longSlug = 'a'.repeat(210);
+      vi.mocked(sanitizeSlug).mockReturnValue(longSlug);
+      vi.mocked(sanitizeChar).mockReturnValue('-');
+      const implementation = {
+        init: vi.fn(() => implementation),
+        getEntry: vi.fn().mockResolvedValue(undefined),
+      };
+      const collection = {
+        name: 'posts',
+        fields: [{ name: 'title' }],
+        type: FOLDER,
+        folder: 'posts',
+        slug: '{{slug}}',
+        path: '{{slug}}/index',
+      };
+      const backend = new Backend(implementation as any, { config: {}, backendName: 'github' } as any);
+
+      const result = await backend.generateUniqueSlug(
+        collection as any,
+        { title: longSlug },
+        {} as any,
+        ['a'.repeat(200)],
+        undefined,
+      );
+
+      expect(result).not.toBe('a'.repeat(200));
+      expect(new TextEncoder().encode(result).length).toBeLessThanOrEqual(200);
+    });
+
+    describe('length', () => {
+      const encoder = new TextEncoder();
+      const longVietnamese = 'hướng-dẫn-chăm-sóc-da-mặt-cho-làn-da-nhạy-cảm-'.repeat(20) + 'end';
+      const collection = {
+        name: 'posts',
+        fields: [{ name: 'title' }],
+        type: FOLDER,
+        folder: 'posts',
+        slug: '{{slug}}',
+      };
+
+      function notFound() {
+        return Promise.reject(Object.assign(new Error('Not Found'), { status: 404 }));
+      }
+
+      function bytes(str: string) {
+        return encoder.encode(str).length;
+      }
+
+      it('caps a newly generated slug so its workflow branch is a valid ref', async () => {
+        vi.mocked(sanitizeSlug).mockReturnValue(longVietnamese);
+        const implementation = { init: vi.fn(() => implementation), getEntry: notFound };
+        const backend = new Backend(implementation as any, { config: {}, backendName: 'github' } as any);
+
+        const slug = await backend.generateUniqueSlug(
+          collection as any,
+          { title: 'unused, sanitizeSlug is mocked' },
+          { slug: { encoding: 'unicode', sanitize_replacement: '-' } } as any,
+          [],
+          undefined,
+        );
+
+        expect(bytes(slug)).toBeLessThanOrEqual(200);
+        expect(bytes(`refs/heads/cms/posts/${slug}`)).toBeLessThanOrEqual(255);
+        expect(slug).not.toMatch(/-$/);
+        expect(longVietnamese.startsWith(slug)).toBe(true);
+      });
+
+      it('keeps the uniqueness suffix within the cap', async () => {
+        vi.mocked(sanitizeSlug).mockReturnValue('a'.repeat(300));
+        vi.mocked(sanitizeChar).mockReturnValue('-');
+        const implementation = { init: vi.fn(() => implementation), getEntry: notFound };
+        const backend = new Backend(implementation as any, { config: {}, backendName: 'github' } as any);
+
+        const slug = await backend.generateUniqueSlug(
+          collection as any,
+          { title: 'unused' },
+          { slug: { sanitize_replacement: '-' } } as any,
+          ['a'.repeat(200)],
+          undefined,
+        );
+
+        expect(slug).toBe(`${'a'.repeat(198)}-1`);
+      });
+
+      it('leaves a slug from a custom path alone', async () => {
+        const implementation = { init: vi.fn(() => implementation), getEntry: notFound };
+        const backend = new Backend(implementation as any, { config: {}, backendName: 'github' } as any);
+
+        const slug = await backend.generateUniqueSlug(
+          { ...collection, nested: { depth: 10 } } as any,
+          { title: 'unused' },
+          {} as any,
+          [],
+          `posts/${'d'.repeat(250)}/index.md`,
+        );
+
+        expect(slug).toBe(`${'d'.repeat(250)}/index`);
+      });
+    });
+  });
+
+  // decaporg #7612: a collection filter must see an i18n entry after its
+  // locales are grouped.
+  describe('processEntries', () => {
+    let backend: Backend;
+
+    function createCollection(i18n?: Record<string, unknown>) {
+      return {
+        name: 'posts',
+        type: FOLDER,
+        folder: '_posts',
+        format: 'yaml',
+        extension: 'yml',
+        filter: { field: 'draft', value: false },
+        fields: [{ name: 'title' }, { name: 'draft' }],
+        ...(i18n && { i18n }),
+      } as any;
+    }
+
+    function loadedEntry(path: string, raw: string) {
+      return { file: { path }, content: { kind: 'raw' as const, raw } };
+    }
+
+    beforeEach(() => {
+      (getBackend as ReturnType<typeof vi.fn>).mockReturnValue({ init: vi.fn() });
+      mockEntryCodecRegistry();
+      backend = resolveBackend({ backend: { name: 'git-gateway' } } as any);
+    });
+
+    it('filters entries of a single file i18n collection on the default locale data', () => {
+      const collection = createCollection({
+        structure: 'single_file',
+        locales: ['en', 'de'],
+        default_locale: 'en',
+      });
+
+      const result = backend.processEntries(
+        [
+          loadedEntry(
+            '_posts/published.yml',
+            'en:\n  title: Published\n  draft: false\nde:\n  title: Veröffentlicht\n  draft: false\n',
+          ),
+          loadedEntry(
+            '_posts/drafted.yml',
+            'en:\n  title: Drafted\n  draft: true\nde:\n  title: Entwurf\n  draft: true\n',
+          ),
+        ] as any,
+        collection,
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].slug).toBe('published');
+      expect(result[0].data).toEqual({ title: 'Published', draft: false });
+      expect(result[0].i18n).toEqual({ de: { data: { title: 'Veröffentlicht', draft: false } } });
+    });
+
+    it('keeps translations of a multiple files i18n collection whose filter field is not translated', () => {
+      const collection = createCollection({
+        structure: 'multiple_files',
+        locales: ['en', 'de'],
+        default_locale: 'en',
+      });
+
+      const result = backend.processEntries(
+        [
+          loadedEntry('_posts/published.en.yml', 'title: Published\ndraft: false\n'),
+          loadedEntry('_posts/published.de.yml', 'title: Veröffentlicht\n'),
+          loadedEntry('_posts/drafted.en.yml', 'title: Drafted\ndraft: true\n'),
+          loadedEntry('_posts/drafted.de.yml', 'title: Entwurf\n'),
+        ] as any,
+        collection,
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].slug).toBe('published');
+      expect(result[0].data).toEqual({ title: 'Published', draft: false });
+      expect(result[0].i18n).toEqual({ de: { data: { title: 'Veröffentlicht' } } });
+    });
+
+    it('filters entries of a collection without i18n', () => {
+      const result = backend.processEntries(
+        [
+          loadedEntry('_posts/published.yml', 'title: Published\ndraft: false\n'),
+          loadedEntry('_posts/drafted.yml', 'title: Drafted\ndraft: true\n'),
+        ] as any,
+        createCollection(),
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].slug).toBe('published');
+      expect(result[0].data).toEqual({ title: 'Published', draft: false });
     });
   });
 

@@ -205,6 +205,17 @@ backend:
   name: my-backend
 ```
 
+A backend class may define a static `preloadConfig(config): Promise<CmsConfig>`. `loadConfig` awaits
+it before the backend is constructed, after `local_backend` detection (so a running local proxy
+still takes over), and uses the config it returns: Decap Turbo fetches a site's repo and keys this
+way. A rejection fails the config load with its message.
+
+The user a backend resolves from `authenticate` or `restoreUser` may carry
+`permissions: { collections: Record<string, 'none' | 'view' | 'edit'> }`. Core then re-filters the
+loaded config: `none` drops the collection, `view` turns off `create`, `delete` and `publish`.
+Collections the map does not name keep full access, and the scope checks (`view_scopes`,
+`edit_scopes`) still apply on top.
+
 ## `registerRemarkPlugin`
 
 ```ts
@@ -350,6 +361,43 @@ action for a given locale pair; omit it to always render.
 The built-in "translate from &lt;locale&gt;" button used to be hardcoded in `EditorControlPane`; it
 moved out to this seam (DCMS-1395) and then out of the package entirely, so every locale-row action
 is now a registration. Pair with `unregisterLocaleAction(name)`.
+
+## `registerFieldAction` (experimental)
+
+```ts
+function registerFieldAction(action: {
+  id: string,
+  label: string,
+  title?: string,
+  isAvailable?: (context: CmsFieldActionContext) => boolean,
+  onClick: (context: CmsFieldActionContext) => void,
+}): void;
+```
+
+Adds a button beside each top-level field's label in the entry editor. The context is plain values:
+the field definition, the collection name, the locale being edited, `entry` (a getter returning
+`CMS.editor.getCurrentEntry()` when read) and `applyFieldPatch`. Registering an `id` again replaces
+the earlier action; an action without an `id`, `label` or `onClick` throws.
+
+Experimental: built for the Decap Turbo editor bridge, and may change or go away in any release,
+minor and patch included.
+
+## `CMS.editor` (experimental)
+
+The open entry, from outside React:
+
+- `getCurrentEntry()`: the entry as plain values (collection, slug, fields, data, i18n, locales,
+  `hasChanged`), or `null` when no entry is open.
+- `applyFieldPatch(patches, { locale })`: change fields the way typing would, through the same draft
+  action. A patch path is a field name or a dotted path into an object or list (`seo.description`,
+  `tags.0`). Each patch is applied or refused on its own (unknown or hidden field, wrong value type,
+  a locale the collection lacks or a field not translated into it); nothing is saved. Changed fields
+  remount and are highlighted for a few seconds.
+- `onEditorChange(listener)`: called with a fresh snapshot on every draft change; returns an
+  unsubscribe function.
+
+A backend that implements `attachEditor({ editor, registerFieldAction })` receives both when core
+builds it. Same caveat as `registerFieldAction`: experimental.
 
 ## `registerSlot`
 

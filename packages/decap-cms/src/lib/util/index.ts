@@ -22,6 +22,7 @@ export {
 } from './APIUtils.js';
 export { asyncLock } from './asyncLock.js';
 export {
+  collectionKeyForFiles,
   filterByExtension,
   getAllResponses,
   getPathDepth,
@@ -73,6 +74,14 @@ export {
   resolveTargetMimeType,
 } from './imageOptimization.js';
 export type { TargetDimensions } from './imageOptimization.js';
+export {
+  getMediaProcessingConfig,
+  getMediaProcessingFileName,
+  mediaProcessingSchema,
+  shouldTransformImage,
+  transformImageFile,
+} from './mediaProcessing.js';
+export type { MediaProcessingConfig } from './mediaProcessing.js';
 export {
   clampCropRect,
   constrainCropRectToAspectRatio,

@@ -1,11 +1,16 @@
 import { createAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
+import { refilterConfigForPermissions } from '@/core/actions/config';
+import { resetDeployStatus } from '@/core/actions/deployStatus';
 import { addNotification, clearNotifications } from '@/core/actions/notifications';
 import { currentBackend } from '@/core/backend';
 import { ACCESS_TOKEN_ERROR } from '@/lib/util/index';
 import queryCore from '@/lib/util/queryCore';
 
+import type { BackendPermissions } from '@/core/actions/config';
 import type { CmsCredentials, CmsUser as User } from '@/lib/util/index';
+import type { AnyAction } from 'redux';
+import type { ThunkDispatch } from 'redux-thunk';
 
 type State = any;
 
@@ -28,6 +33,24 @@ export const useOpenAuthoring = createAction('auth/useOpenAuthoring');
  */
 export const sessionExpired = createAction('auth/sessionExpired');
 
+/**
+ * Sets the message the login page shows, without a login attempt behind it:
+ * a session that ended for good mid-use (`sessionInvalidated`).
+ */
+export const authError = createAction<string>('auth/authError');
+
+/**
+ * Any backend's resolved user may carry `permissions` (per-collection
+ * none/view/edit); core re-filters the loaded config against it. The field
+ * name is backend-neutral; backends that never set it are unaffected.
+ */
+function refilterForUserPermissions(dispatch: ThunkDispatch<State, {}, AnyAction>, user: User | null) {
+  const permissions = (user as { permissions?: BackendPermissions } | null)?.permissions;
+  if (permissions) {
+    dispatch(refilterConfigForPermissions(permissions));
+  }
+}
+
 // Check if user data token is cached and is valid
 export const authenticateUser = createAsyncThunk<User | null, void, { state: State }>(
   'auth/authenticateUser',
@@ -38,6 +61,7 @@ export const authenticateUser = createAsyncThunk<User | null, void, { state: Sta
       if (user && user.useOpenAuthoring) {
         dispatch(useOpenAuthoring());
       }
+      refilterForUserPermissions(dispatch as ThunkDispatch<State, {}, AnyAction>, user || null);
       return user || null;
     } catch (error) {
       // Only a definitive auth failure (the backend says the session is dead)
@@ -61,6 +85,7 @@ export const loginUser = createAsyncThunk<User, CmsCredentials, { state: State }
       if (user.useOpenAuthoring) {
         dispatch(useOpenAuthoring());
       }
+      refilterForUserPermissions(dispatch as ThunkDispatch<State, {}, AnyAction>, user);
       return user;
     } catch (error) {
       // Backends that authenticate via a native browser picker (e.g.
@@ -93,11 +118,32 @@ export const logoutUser = createAsyncThunk<void, void, { state: State }>(
   'auth/logoutUser',
   async (_, { dispatch, getState }) => {
     const backend = currentBackend(getState().config);
+    // Before backend.logout(), which discards the backend's deploy watcher:
+    // the deploy subscriptions are module-level, so left set they would make
+    // the next sign-in's subscribe a no-op while still pointing at the
+    // discarded watcher, and a later save would poll with nobody to tell.
+    dispatch(resetDeployStatus());
     await backend.logout();
     queryCore.clear();
     dispatch(clearNotifications());
   },
 );
+
+/**
+ * The backend found its session dead mid-use (a refresh token revoked
+ * server-side, a site membership removed). Unlike `sessionExpired`, which
+ * keeps the user behind a re-auth overlay, there is nothing to resume: the
+ * reason goes on the login page and the user is logged out, which also
+ * clears the toasts the failing requests had already raised. Ignored when
+ * nobody is logged in, so a backend reporting twice logs out once.
+ */
+export function sessionInvalidated(message: string) {
+  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+    if (!getState().auth.user) return;
+    dispatch(authError(message));
+    dispatch(logoutUser());
+  };
+}
 
 export type Auth = {
   isFetching: boolean,
@@ -126,6 +172,9 @@ const auth = createSlice({
     builder
       .addCase(sessionExpired, state => {
         state.sessionExpired = true;
+      })
+      .addCase(authError, (state, action) => {
+        state.error = action.payload;
       })
       .addCase(authenticateUser.pending, state => {
         state.isFetching = true;

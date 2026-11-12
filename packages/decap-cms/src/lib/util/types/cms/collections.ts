@@ -22,6 +22,8 @@ export interface CmsCollectionFile {
   i18n?: boolean | CmsI18nConfig;
   media_folder?: string;
   public_folder?: string;
+  /** Overrides the collection's `editor` settings for this file. */
+  editor?: { preview?: boolean, notes?: boolean };
 }
 
 export interface CmsCollection {
@@ -65,6 +67,12 @@ export interface CmsCollection {
        * can opt out with `visualEditing: false`. Defaults to `false` (disabled).
        */
       visualEditing?: boolean | undefined,
+      /**
+       * Shows the notes pane for this collection's entries while they are under
+       * the editorial workflow: comments stored on a companion issue per entry,
+       * where the backend supports it. Defaults to `false`.
+       */
+      notes?: boolean | undefined,
     }
     | undefined;
   publish?: boolean | undefined;
@@ -89,6 +97,11 @@ export interface CmsCollection {
   view_filters?: CmsViewFilter[] | undefined;
   view_groups?: CmsViewGroup[] | undefined;
   i18n?: boolean | CmsI18nConfig | undefined;
+  /**
+   * Folder collections only: the most entries the collection may hold,
+   * published and unpublished together. Creating more is blocked.
+   */
+  limit?: number | undefined;
   /** @deprecated Use sortable_fields instead */
   sortableFields?: (string | CmsSortableField)[] | undefined;
 }
@@ -145,6 +158,7 @@ export type CmsCollectionState = {
   search_fields?: string[],
   view_filters: CmsViewFilter[],
   view_groups: CmsViewGroup[],
+  limit?: number,
   nested?: { depth: number, subfolders?: boolean },
   meta?: CmsMetaObject,
   i18n: CmsI18nStructure,

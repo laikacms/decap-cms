@@ -143,3 +143,36 @@ describe('DateTimeControl date_format/time_format: false input-type switching (D
     expect(input).toHaveAttribute('type', 'date');
   });
 });
+
+describe('DateTimeControl typing (#8002)', () => {
+  function ControlledDateTime({ field, initialValue }: { field: any, initialValue: string }) {
+    const [value, setValue] = React.useState(initialValue);
+    return (
+      <DateTimeControl
+        forID="controlled-datetime"
+        onChange={setValue}
+        classNameWrapper="classNameWrapper"
+        setActiveStyle={vi.fn()}
+        setInactiveStyle={vi.fn()}
+        value={value}
+        t={key => key}
+        field={field}
+      />
+    );
+  }
+
+  test('does not rewrite the year while it is being typed in a controlled date input', () => {
+    const field = { name: 'date', format: 'YYYY-MM-DD', time_format: false };
+    const { getByTestId } = render(<ControlledDateTime field={field} initialValue="2025-08-03" />);
+    const input = getByTestId('controlled-datetime');
+
+    fireEvent.focus(input);
+    for (const value of ['0002-08-03', '0020-08-03', '0202-08-03', '2026-08-03']) {
+      fireEvent.change(input, { target: { value } });
+      expect(input).toHaveValue(value);
+    }
+    fireEvent.blur(input);
+
+    expect(input).toHaveValue('2026-08-03');
+  });
+});

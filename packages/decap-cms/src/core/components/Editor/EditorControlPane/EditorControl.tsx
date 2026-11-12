@@ -20,6 +20,7 @@ import {
 import { clearSearch, query } from '@/core/actions/search';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
+import { editorApi } from '@/core/lib/editorApi';
 import { resolveWidget } from '@/core/lib/registry';
 import { selectIsLoadingAsset } from '@/core/reducers/medias';
 import { store } from '@/core/redux';
@@ -28,7 +29,15 @@ import HintMarkdown from './HintMarkdown';
 import Widget from './Widget';
 
 import type AssetProxy from '@/core/valueObjects/AssetProxy';
-import type { CmsCollectionState, CmsConfig, CmsEntry, CmsEntryField } from '@/lib/util/index';
+import type {
+  CmsCollectionState,
+  CmsConfig,
+  CmsEditorFieldDefinition,
+  CmsEntry,
+  CmsEntryField,
+  CmsFieldAction,
+  CmsFieldActionContext,
+} from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 import type { Interpolation, Theme } from '@emotion/react';
 import type { Dispatch } from 'redux';
@@ -100,6 +109,76 @@ const ControlTopbar = styled.div`
   gap: 20px;
   align-items: end;
 `;
+const FieldActions = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+`;
+
+const FieldActionButton = styled.button`
+  border: 0;
+  border-radius: ${lengths.borderRadius};
+  background: ${colors.textFieldBorder};
+  color: ${colors.controlLabel};
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: ${colors.active};
+    color: ${colors.textLight};
+  }
+`;
+
+interface FieldActionBarProps {
+  field: EntryField;
+  collection: Collection | undefined;
+  locale: string | undefined;
+  actions: CmsFieldAction[];
+}
+
+/**
+ * The buttons `registerFieldAction` adds beside a top-level field's label.
+ * Experimental, like the registry call. A component so the editor's
+ * memoization holds: the props are stable unless the actions change.
+ */
+export function FieldActionBar({ field, collection, locale, actions }: FieldActionBarProps) {
+  // Plain values only, so an extension never depends on the editor's internals.
+  const context: CmsFieldActionContext = {
+    field: { ...field } as CmsEditorFieldDefinition,
+    collection: collection?.name ?? '',
+    locale,
+    // A getter, so rendering doesn't convert the whole entry for every
+    // top-level field on every keystroke; only an action that reads it pays
+    // for it, and gets the entry as it is now.
+    get entry() {
+      return editorApi.getCurrentEntry();
+    },
+    applyFieldPatch: editorApi.applyFieldPatch,
+  };
+  const available = actions.filter(action => !action.isAvailable || action.isAvailable(context));
+  if (available.length === 0) {
+    return null;
+  }
+
+  return (
+    <FieldActions data-field-actions="">
+      {available.map(action => (
+        <FieldActionButton
+          key={action.id}
+          type="button"
+          title={action.title || action.label}
+          onClick={() => action.onClick(context)}
+        >
+          {action.label}
+        </FieldActionButton>
+      ))}
+    </FieldActions>
+  );
+}
+
 const ControlErrorsList = styled.ul`
   list-style-type: none;
   font-size: 12px;
@@ -206,6 +285,10 @@ interface EditorControlProps {
   config: CmsConfig;
   isDisabled?: boolean;
   isHidden?: boolean;
+  /** Changed from outside the editor a moment ago (`core/lib/editorApi`). */
+  isHighlighted?: boolean;
+  /** Top-level controls only: see `registerFieldAction`. */
+  fieldActions?: CmsFieldAction[];
   isFieldDuplicate?: (field: EntryField) => boolean;
   isFieldHidden?: (field: EntryField) => boolean;
   locale?: string;
@@ -259,6 +342,8 @@ function EditorControl(props: EditorControlProps) {
     isLoadingAsset,
     isDisabled,
     isHidden,
+    isHighlighted,
+    fieldActions,
     isFieldDuplicate,
     isFieldHidden,
     locale,
@@ -320,6 +405,14 @@ function EditorControl(props: EditorControlProps) {
               && css`
                 ${styleStrings.hidden}
               `,
+            isHighlighted
+              && css`
+                border-radius: ${lengths.borderRadius};
+                box-shadow: 0 0 0 3px ${colors.active};
+              `,
+            css`
+              transition: box-shadow ${transitions.main};
+            `,
           )}
           aria-label={t('editor.editorControl.field.widgetLabel', { widgetLabel: widgetName })}
           data-field-name={field.name}
@@ -336,6 +429,9 @@ function EditorControl(props: EditorControlProps) {
               isFieldRequired={isFieldRequired}
               t={t}
             />
+            {fieldActions && fieldActions.length > 0 && (
+              <FieldActionBar field={field} collection={collection} locale={locale} actions={fieldActions} />
+            )}
             {errors && (
               <ControlErrorsList id={errorListId} className="ControlErrorsList">
                 {errors.map(
@@ -508,6 +604,8 @@ interface ConnectedEditorControlProps {
   collection?: Collection;
   isDisabled?: boolean;
   isHidden?: boolean;
+  isHighlighted?: boolean;
+  fieldActions?: CmsFieldAction[];
   isFieldDuplicate?: (field: EntryField) => boolean;
   isFieldHidden?: (field: EntryField) => boolean;
   locale?: string | undefined;

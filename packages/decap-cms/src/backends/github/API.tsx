@@ -1,5 +1,6 @@
 import { initial, isError, last, partial, result, trim, trimStart } from 'lodash-es';
 
+import { commentsToNotes, commentToNote, formatNoteBody } from '@/lib/backend/index';
 import { oneLine } from '@/lib/util/index';
 import {
   APIError,
@@ -29,7 +30,7 @@ import {
 import { showAlert } from '@/ui';
 import { GithubCommitStatusState, PullRequestState } from './types/api';
 
-import type { Author } from '@/lib/backend/index';
+import type { Author, CommentData, IssueState, Note } from '@/lib/backend/index';
 import type {
   ApiRequest,
   CmsAssetProxy,
@@ -50,6 +51,8 @@ import type {
   GitHubCompareCommits,
   GitHubCompareFile,
   GitHubCompareFiles,
+  GitHubIssue,
+  GitHubIssueComment,
   GitHubLabel,
   GitHubPull,
   GitHubUser,
@@ -180,7 +183,7 @@ export default class API {
   }
 
   reset() {
-    // no op
+    this.notesIssues.clear();
   }
 
   requestHeaders(headers = {}) {
@@ -785,19 +788,24 @@ export default class API {
       );
       branches = branchesWithFilter.filter(b => b.filter).map(b => b.branch);
     } else {
-      // backwards compatibility code, get relevant pull requests and migrate them
-      const pullRequests = await this.getPullRequests(
-        undefined,
-        PullRequestState.Open,
+      // One fetch, two filters: both predicates below used to be separate
+      // getPullRequests calls with the same head/state, so every collection
+      // load sent the same `GET /pulls` twice. The predicate is applied
+      // client-side anyway.
+      const openPullRequests = await this.getPullRequests(undefined, PullRequestState.Open, () => true);
+
+      // Backwards compatibility: entries created before the CMS labelled its
+      // pull requests get migrated.
+      const unlabeled = openPullRequests.filter(
         pr => !pr.head.repo.fork && withoutCmsLabel(pr, this.cmsLabelPrefix),
       );
       let prCount = 0;
-      for (const pr of pullRequests) {
+      for (const pr of unlabeled) {
         if (!migrationNotified) {
           migrationNotified = true;
           showAlert(
             oneLine`
-            Decap CMS is adding labels to ${pullRequests.length} of your Editorial Workflow
+            Decap CMS is adding labels to ${unlabeled.length} of your Editorial Workflow
             entries. The "Workflow" tab will be unavailable during this migration. You may use other
             areas of the CMS during this time. Note that closing the CMS will pause the migration.
           `,
@@ -805,13 +813,14 @@ export default class API {
           );
         }
         prCount = prCount + 1;
-        await this.migratePullRequest(pr, `${prCount} of ${pullRequests.length}`);
+        await this.migratePullRequest(pr, `${prCount} of ${unlabeled.length}`);
       }
-      const cmsPullRequests = await this.getPullRequests(
-        undefined,
-        PullRequestState.Open,
-        pr => withCmsLabel(pr, this.cmsLabelPrefix),
-      );
+
+      // Migrating is what adds the labels, so when it ran the list fetched
+      // above is out of date and is read again.
+      const cmsPullRequests = unlabeled.length
+        ? await this.getPullRequests(undefined, PullRequestState.Open, pr => withCmsLabel(pr, this.cmsLabelPrefix))
+        : openPullRequests.filter(pr => withCmsLabel(pr, this.cmsLabelPrefix));
       branches = cmsPullRequests.map(pr => pr.head.ref);
     }
 
@@ -1474,4 +1483,294 @@ export default class API {
     const pullRequest = await this.getBranchPullRequest(branch);
     return pullRequest.head.sha;
   }
+
+  // -- Editor notes (decaporg #7563 / #7994) ----------------------------------
+  //
+  // An entry's notes live in a repository issue of their own, one comment per
+  // note, so they survive publishing (the PR merges) and stay readable on
+  // GitHub. The issue carries the `decap-cms-notes` label and names the entry
+  // in its body as `collection/slug`, which is how it is found again.
+
+  private static readonly NOTES_LABEL = 'decap-cms-notes';
+  private static readonly NOTE_ISSUE_PREFIX = 'Notes: ';
+  private static readonly PUBLISHED_LABEL = 'entry-published';
+  private static readonly DELETED_LABEL = 'entry-deleted';
+
+  /**
+   * Threads this session found or created, by `collection/slug`, so each
+   * note after the first does not list the repo's notes issues again.
+   */
+  private notesIssues = new Map<string, NotesIssueRef>();
+
+  parseCommentToNote(comment: CommentData): Note {
+    return commentToNote(comment);
+  }
+
+  /**
+   * The repo's notes issues, listed by label.
+   *
+   * Deliberately not `/search/issues`: with a GitHub App installation token
+   * the search API intermittently answers an identical query with 422 "cannot
+   * be searched" (seen alternating 200/422 within a second on the same repo),
+   * and search lags behind writes. The label listing is a plain repo read
+   * with no index behind it. Paged by number rather than with
+   * requestAllPages, which follows Link headers that a proxy in front of the
+   * API may not forward, and capped so a host that keeps answering full
+   * pages cannot hold a lookup open indefinitely.
+   *
+   * Narrowed by the `collection:` label createEntryIssue writes alongside the
+   * notes label (GitHub ANDs the two), so a lookup does not list every notes
+   * thread on the site.
+   */
+  private async listNotesIssues(state: 'open' | 'all', collectionName: string): Promise<GitHubIssue[]> {
+    const labels = `${API.NOTES_LABEL},collection:${collectionName}`;
+    const perPage = 100;
+    const maxPages = 20;
+    const issues: (GitHubIssue & { pull_request?: unknown })[] = [];
+    for (let page = 1; page <= maxPages; page++) {
+      const batch: (GitHubIssue & { pull_request?: unknown })[] = await this.request(`${this.repoURL}/issues`, {
+        params: { labels, state, per_page: perPage, page },
+      });
+      issues.push(...batch);
+      if (batch.length < perPage) break;
+    }
+    // The issues endpoint lists pull requests too.
+    return issues.filter(issue => !issue.pull_request);
+  }
+
+  /**
+   * The body names the entry between backticks, which pins it exactly, so
+   * `posts/my-post` does not also match the thread for `posts/my-post-2`.
+   */
+  private async findNotesIssue(
+    collectionName: string,
+    slug: string,
+    state: 'open' | 'all' = 'all',
+  ): Promise<GitHubIssue | null> {
+    const key = `\`${collectionName}/${slug}\``;
+    const issues = await this.listNotesIssues(state, collectionName);
+    return issues.find(issue => issue.body?.includes(key)) || null;
+  }
+
+  async createEntryIssue(collectionName: string, slug: string, entryTitle?: string): Promise<GitHubIssue> {
+    const title = `${API.NOTE_ISSUE_PREFIX}${entryTitle || `${collectionName}/${slug}`}`;
+    const body = `This issue tracks notes for entry: \`${collectionName}/${slug}\`\n\n---\n`
+      + '*This issue was created automatically by Decap CMS for note management.*';
+
+    const issue: GitHubIssue = await this.request(`${this.repoURL}/issues`, {
+      method: 'POST',
+      body: JSON.stringify({
+        title,
+        body,
+        labels: [API.NOTES_LABEL, `collection:${collectionName}`],
+      }),
+    });
+    this.notesIssues.set(`${collectionName}/${slug}`, { number: issue.number, html_url: issue.html_url });
+    return issue;
+  }
+
+  /**
+   * The entry's notes thread, or null when it has none yet. A failed lookup
+   * throws rather than answering null: read as "no thread", it would make the
+   * next note open a second one.
+   */
+  async findEntryIssue(collectionName: string, slug: string): Promise<NotesIssueRef | null> {
+    const key = `${collectionName}/${slug}`;
+    const cached = this.notesIssues.get(key);
+    if (cached) {
+      return cached;
+    }
+    const issue = await this.findNotesIssue(collectionName, slug);
+    if (!issue) {
+      return null;
+    }
+    const ref = { number: issue.number, html_url: issue.html_url };
+    this.notesIssues.set(key, ref);
+    return ref;
+  }
+
+  /**
+   * The issue and its comments, or `{ status: 304 }` when the issue is unchanged
+   * since `etag`. A 304 does not count against the rate limit, which is what
+   * makes polling every open entry affordable.
+   */
+  async getIssueWithETag(
+    issueNumber: number,
+    etag: string | null,
+  ): Promise<
+    | { status: 304, data?: never, etag?: never }
+    | { status: 200, data: IssueState, etag: string | null }
+  > {
+    // Raw fetch because `request` parses the body and drops the ETag header.
+    // Still built through urlFor/requestHeaders so a subclass can scope it to
+    // its own proxy; hand-building the URL and auth header breaks that.
+    const headers: Record<string, string> = await this.requestHeaders(
+      etag ? { 'If-None-Match': etag } : {},
+    );
+    const response = await unsentRequest.fetchWithTimeout(
+      this.urlFor(`${this.repoURL}/issues/${issueNumber}`, {}),
+      { headers },
+    );
+
+    if (response.status === 304) {
+      return { status: 304 };
+    }
+    if (response.status !== 200) {
+      throw new APIError(`Unexpected status: ${response.status}`, response.status, API_NAME);
+    }
+
+    const issue: GitHubIssue = await response.json();
+    const comments = await this.getIssueComments(issueNumber);
+
+    return {
+      status: 200,
+      etag: response.headers.get('ETag'),
+      data: {
+        number: issue.number,
+        title: issue.title,
+        body: issue.body || '',
+        state: issue.state,
+        updated_at: issue.updated_at,
+        comments,
+        labels: issue.labels,
+        html_url: issue.html_url,
+      },
+    };
+  }
+
+  async getIssueState(issueNumber: number): Promise<IssueState> {
+    const response = await this.getIssueWithETag(issueNumber, null);
+    if (response.status === 200) {
+      return response.data;
+    }
+    throw new Error('Failed to get issue state');
+  }
+
+  /**
+   * Every comment on the issue: the endpoint pages at 30 by default, and a
+   * thread past that would silently lose its older notes.
+   *
+   * Errors propagate. An empty list on failure is indistinguishable from a
+   * thread whose notes were all deleted, and polling would blank the pane.
+   */
+  private async getIssueComments(issueNumber: number): Promise<CommentData[]> {
+    const comments = await this.requestAllPages<GitHubIssueComment>(
+      `${this.repoURL}/issues/${issueNumber}/comments`,
+      { params: { per_page: 100 } },
+    );
+    return comments.map(comment => ({
+      id: comment.id,
+      body: comment.body || '',
+      user: comment.user && { login: comment.user.login, avatar_url: comment.user.avatar_url },
+      created_at: comment.created_at,
+      updated_at: comment.updated_at,
+    }));
+  }
+
+  /** All notes on the entry, each linked back to its thread; none when it has no thread. */
+  async getEntryNotes(collectionName: string, slug: string): Promise<Note[]> {
+    const issue = await this.findEntryIssue(collectionName, slug);
+    if (!issue) {
+      return [];
+    }
+    const comments = await this.getIssueComments(issue.number);
+    return commentsToNotes(comments, issue.html_url, comment => this.parseCommentToNote(comment));
+  }
+
+  /** Posts the note on the entry's thread, opening the thread for its first note. */
+  async addNoteToEntry(
+    collectionName: string,
+    slug: string,
+    note: Note,
+    entryTitle?: string,
+  ): Promise<{ commentId: string, issueUrl: string }> {
+    try {
+      const issue = (await this.findEntryIssue(collectionName, slug))
+        || (await this.createEntryIssue(collectionName, slug, entryTitle));
+      const comment: GitHubIssueComment = await this.request(
+        `${this.repoURL}/issues/${issue.number}/comments`,
+        { method: 'POST', body: JSON.stringify({ body: formatNoteBody(note) }) },
+      );
+      return { commentId: comment.id.toString(), issueUrl: issue.html_url };
+    } catch (error: unknown) {
+      throw noteError('Failed to create note', error);
+    }
+  }
+
+  /** Comment ids are repository-wide, so a note is addressed by its id alone. */
+  async updateEntryNote(noteId: string, note: Note): Promise<void> {
+    try {
+      await this.request(`${this.repoURL}/issues/comments/${noteId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ body: formatNoteBody(note) }),
+      });
+    } catch (error: unknown) {
+      throw noteError('Failed to update note', error);
+    }
+  }
+
+  async deleteEntryNote(noteId: string): Promise<void> {
+    try {
+      await this.request(`${this.repoURL}/issues/comments/${noteId}`, { method: 'DELETE' });
+    } catch (error: unknown) {
+      throw noteError('Failed to delete note', error);
+    }
+  }
+
+  /**
+   * Opens or closes the entry's thread and adds or removes a lifecycle label.
+   * Best effort: it follows a publish or delete that already happened, which a
+   * failure here must not undo or report as failed.
+   */
+  private async setEntryIssueState(
+    collectionName: string,
+    slug: string,
+    state: 'open' | 'closed',
+    label: { add: string } | { remove: string[] },
+  ) {
+    try {
+      const issue = await this.findNotesIssue(collectionName, slug, state === 'closed' ? 'open' : 'all');
+      if (!issue) {
+        return;
+      }
+      const names = issue.labels.map(l => l.name);
+      const labels = 'add' in label
+        ? [...new Set([...names, label.add])]
+        : names.filter(name => !label.remove.includes(name));
+      await this.request(`${this.repoURL}/issues/${issue.number}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ state, labels }),
+      });
+    } catch (error: unknown) {
+      console.warn(`Failed to ${state === 'closed' ? 'close' : 'reopen'} the notes issue:`, error);
+    }
+  }
+
+  /** Closes the entry's thread once it is published. */
+  closeIssueOnPublish(collectionName: string, slug: string) {
+    return this.setEntryIssueState(collectionName, slug, 'closed', { add: API.PUBLISHED_LABEL });
+  }
+
+  /** Closes the entry's thread when its unpublished changes are deleted. */
+  closeEntryNotesIssue(collectionName: string, slug: string) {
+    return this.setEntryIssueState(collectionName, slug, 'closed', { add: API.DELETED_LABEL });
+  }
+
+  /** Reopens the entry's thread when it goes back under the editorial workflow. */
+  reopenIssueOnUnpublish(collectionName: string, slug: string) {
+    return this.setEntryIssueState(collectionName, slug, 'open', {
+      remove: [API.PUBLISHED_LABEL, API.DELETED_LABEL],
+    });
+  }
+}
+
+/** Where an entry's notes thread is: enough to read it, post to it and link to it. */
+export interface NotesIssueRef {
+  number: number;
+  html_url: string;
+}
+
+function noteError(message: string, error: unknown) {
+  const { message: cause, status } = (error ?? {}) as { message?: string, status?: number };
+  return new APIError(cause ? `${message}: ${cause}` : message, status || 500, API_NAME);
 }

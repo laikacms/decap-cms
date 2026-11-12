@@ -1,5 +1,7 @@
 import http from 'node:http';
 
+import type { AddressInfo } from 'node:net';
+
 // Matches the 50mb limit the proxy server historically allowed for base64 asset payloads.
 const MAX_BODY_BYTES = 50 * 1024 * 1024;
 
@@ -32,6 +34,10 @@ export interface DevServerApp {
 
 type AppOptions = {
   logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>,
+  /** The CMS origin allowed to call the server. Falls back to ORIGIN, then localhost. */
+  origin?: string | undefined,
+  /** The address the server is bound to. Falls back to BIND_HOST, then this machine only. */
+  bindHost?: string | undefined,
 };
 
 function sendJson(res: http.ServerResponse, code: number, payload: unknown) {
@@ -52,12 +58,70 @@ function wrapResponse(res: http.ServerResponse): DevServerResponse {
   };
 }
 
+// The CMS origins allowed to call the server when ORIGIN is not set.
+const LOCALHOST_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+
+type AllowedOrigin = string | RegExp;
+
+function isOriginAllowed(allowedOrigin: AllowedOrigin, origin: string) {
+  if (typeof allowedOrigin === 'string') {
+    return allowedOrigin === '*' || origin === allowedOrigin;
+  }
+  return allowedOrigin.test(origin);
+}
+
+/** Addresses that only accept connections from this machine. */
+export function isLoopbackAddress(host: string) {
+  const name = host.toLowerCase().replace(/^\[(.*)\]$/, '$1');
+  return name === 'localhost' || name.endsWith('.localhost') || name === '::1' || /^127(\.\d{1,3}){3}$/.test(name);
+}
+
+/** The hostname of a Host header, without its port: `[::1]:8081` -> `[::1]`. */
+function hostnameOf(hostHeader: string) {
+  return hostHeader.startsWith('[') ? hostHeader.slice(0, hostHeader.indexOf(']') + 1) : hostHeader.split(':')[0];
+}
+
+/**
+ * The server has no authentication: whoever can call it can read and write the
+ * repository. CORS only stops a page from reading responses, so also refuse
+ * requests a browser sends on behalf of another origin, and, while the server
+ * is only reachable from this machine, requests addressed to any other host
+ * name: that is how a DNS-rebinding page reaches a localhost server. Returns
+ * true when the request was refused.
+ */
+function refuseRequest(
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  allowedOrigin: AllowedOrigin,
+  checkHost: boolean,
+): boolean {
+  const { origin, host } = req.headers;
+  // Requests without an Origin header don't come from a web page.
+  if (origin !== undefined && !isOriginAllowed(allowedOrigin, origin)) {
+    sendJson(res, 403, { error: `Origin ${origin} is not allowed; set ORIGIN to the CMS origin` });
+    return true;
+  }
+  if (checkHost && !isLoopbackAddress(hostnameOf(host || ''))) {
+    sendJson(res, 403, { error: `Host ${host} is not allowed` });
+    return true;
+  }
+  return false;
+}
+
 // Sets the CORS headers previously provided by the `cors` middleware and answers
 // preflight requests. Returns true when the request was a handled preflight.
-function handleCors(req: http.IncomingMessage, res: http.ServerResponse): boolean {
-  const origin = process.env.ORIGIN || '*';
-  res.setHeader('Access-Control-Allow-Origin', origin);
-  if (origin !== '*') {
+function handleCors(req: http.IncomingMessage, res: http.ServerResponse, allowedOrigin: AllowedOrigin): boolean {
+  if (allowedOrigin === '*') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  } else {
+    // Like the `cors` middleware: a fixed origin is always sent, a pattern
+    // reflects the request's origin only when it matches.
+    const { origin } = req.headers;
+    if (typeof allowedOrigin === 'string') {
+      res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    } else if (origin && allowedOrigin.test(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
     res.setHeader('Vary', 'Origin');
   }
   if (req.method !== 'OPTIONS') {
@@ -114,19 +178,27 @@ async function runHandlers(handlers: Handler[], req: DevServerRequest, res: DevS
   }
 }
 
-export function createApp({ logger }: AppOptions): DevServerApp {
+export function createApp({ logger, origin, bindHost: host }: AppOptions): DevServerApp {
   const routes = new Map<string, Handler[]>();
+  const allowedOrigin: AllowedOrigin = origin || process.env.ORIGIN || LOCALHOST_ORIGIN;
+  const bindHost = host || process.env.BIND_HOST;
+  const checkHost = !bindHost || isLoopbackAddress(bindHost);
 
-  const server = http.createServer(async (req, res) => {
+  const requestListener: http.RequestListener = async (req, res) => {
     res.on('finish', () => {
       logger.debug(`${req.method} ${req.url} ${res.statusCode}`);
     });
 
-    if (handleCors(req, res)) {
+    const pathname = (req.url || '/').split('?')[0];
+    const isApi = pathname === '/api/v1' || pathname.startsWith('/api/v1/');
+    if (isApi && refuseRequest(req, res, allowedOrigin, checkHost)) {
       return;
     }
 
-    const pathname = (req.url || '/').split('?')[0];
+    if (handleCors(req, res, allowedOrigin)) {
+      return;
+    }
+
     const handlers = routes.get(`${req.method} ${pathname}`);
     if (!handlers) {
       sendJson(res, 404, { error: 'Not Found' });
@@ -150,7 +222,7 @@ export function createApp({ logger }: AppOptions): DevServerApp {
         sendJson(res, 500, { error: 'Unknown error' });
       }
     }
-  });
+  };
 
   return {
     post(path: string, handler: Handler) {
@@ -158,7 +230,55 @@ export function createApp({ logger }: AppOptions): DevServerApp {
       routes.set(key, [...(routes.get(key) || []), handler]);
     },
     listen(port: number, host: string | undefined, onListen: () => void) {
+      const server = http.createServer(requestListener);
       return host ? server.listen(port, host, onListen) : server.listen(port, onListen);
     },
   };
+}
+
+function listenOn(app: DevServerApp, port: number, host: string): Promise<http.Server> {
+  return new Promise((resolve, reject) => {
+    const server = app.listen(port, host, () => resolve(server));
+    server.once('error', reject);
+  });
+}
+
+/**
+ * Start listening. The server can write any file in the repository and has no
+ * authentication, so without a `host` it only listens on this machine: the CMS
+ * calls http://localhost:8081, and localhost resolves to either loopback
+ * address, so it listens on both 127.0.0.1 and ::1.
+ */
+export async function startServer(
+  app: DevServerApp,
+  { port, host, logger }: { port: number, host?: string | undefined, logger: AppOptions['logger'] },
+): Promise<http.Server> {
+  if (host) {
+    const server = await listenOn(app, port, host);
+    logger.info(`Decap CMS Proxy Server listening on ${host}:${port}`);
+    if (!isLoopbackAddress(host)) {
+      logger.warn(
+        `The proxy has no authentication: anyone who can reach ${host}:${port} can read and write files in your repository`,
+      );
+    }
+    return server;
+  }
+
+  const server = await listenOn(app, port, '127.0.0.1');
+  try {
+    // The bound port, not `port`, which may be 0 for "any free port".
+    const ipv6Server = await listenOn(app, (server.address() as AddressInfo).port, '::1');
+    server.on('close', () => ipv6Server.close());
+  } catch (e: unknown) {
+    // IPv6 disabled on this machine: browsers fall back to 127.0.0.1.
+    const code = (e as NodeJS.ErrnoException).code;
+    if (code !== 'EADDRNOTAVAIL' && code !== 'EAFNOSUPPORT') {
+      server.close();
+      throw e;
+    }
+  }
+  // The bound port, so `port: 0` reports the port it was given.
+  const boundPort = (server.address() as AddressInfo).port;
+  logger.info(`Decap CMS Proxy Server listening on port ${boundPort} (this machine only; set BIND_HOST to expose it)`);
+  return server;
 }

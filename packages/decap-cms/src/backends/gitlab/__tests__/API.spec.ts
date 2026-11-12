@@ -222,3 +222,39 @@ describe('GitLab API', () => {
     });
   });
 });
+
+describe('GitLab API publishUnpublishedEntry', () => {
+  test.each([false, true])('merges the fetched head SHA with squashMerges=%s', async squashMerges => {
+    const api = new API({ repo: 'foo/bar', squashMerges } as any);
+    const mergeRequest = { iid: 42, sha: 'reviewed-head-sha' };
+    (api as any).getBranchMergeRequest = vi.fn().mockResolvedValue(mergeRequest);
+    (api as any).requestJSON = vi.fn().mockResolvedValue({ state: 'merged' });
+
+    await api.publishUnpublishedEntry('posts', 'title');
+
+    expect((api as any).getBranchMergeRequest).toHaveBeenCalledWith('cms/posts/title');
+    expect((api as any).requestJSON).toHaveBeenCalledTimes(1);
+    expect((api as any).requestJSON).toHaveBeenCalledWith({
+      method: 'PUT',
+      url: '/projects/foo%2Fbar/merge_requests/42/merge',
+      params: expect.objectContaining({
+        sha: 'reviewed-head-sha',
+        squash: squashMerges,
+        should_remove_source_branch: true,
+      }),
+    });
+  });
+
+  test('propagates a changed-head rejection without retrying the merge', async () => {
+    const api = new API({ repo: 'foo/bar' } as any);
+    const error = new Error('SHA does not match HEAD of source branch');
+    (api as any).getBranchMergeRequest = vi.fn().mockResolvedValue({ iid: 42, sha: 'old-head-sha' });
+    (api as any).requestJSON = vi.fn().mockRejectedValue(error);
+
+    await expect(api.publishUnpublishedEntry('posts', 'title')).rejects.toBe(error);
+
+    expect((api as any).getBranchMergeRequest).toHaveBeenCalledTimes(1);
+    expect((api as any).requestJSON).toHaveBeenCalledTimes(1);
+    expect((api as any).requestJSON.mock.calls[0][0].params.sha).toBe('old-head-sha');
+  });
+});

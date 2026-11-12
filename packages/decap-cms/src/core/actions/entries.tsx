@@ -1,9 +1,9 @@
 import { isEqual } from 'lodash-es';
 
-import { currentBackend } from '@/core/backend';
+import { currentBackend, safeEntryLabel } from '@/core/backend';
 import ValidationErrorTypes from '@/core/constants/validationErrorTypes';
 import { getIntegrationProvider } from '@/core/integrations';
-import { getProcessSegment } from '@/core/lib/formatters';
+import { entryPreviewPath, getProcessSegment } from '@/core/lib/formatters';
 import { duplicateDefaultI18nFields, hasI18n, I18N, I18N_FIELD, serializeI18n } from '@/core/lib/i18n';
 import { serializeValues } from '@/core/lib/serializeEntryValues';
 import { findUniqueFieldConflicts } from '@/core/lib/validateUniqueFields';
@@ -31,6 +31,7 @@ import { createEntry } from '@/core/valueObjects/Entry';
 import { Cursor } from '@/lib/util/index';
 import { CmsSortDirection } from '@/lib/util/index';
 import queryCore, { collectionTag, entryTag } from '@/lib/util/queryCore';
+import { notifyEntrySaved } from './deployStatus';
 import { addAssets, getAsset } from './media';
 import { loadMedia, waitForMediaLibraryToLoad } from './mediaLibrary';
 import { addNotification } from './notifications';
@@ -91,6 +92,8 @@ export const DRAFT_CREATE_FROM_ENTRY = 'DRAFT_CREATE_FROM_ENTRY';
 export const DRAFT_CREATE_EMPTY = 'DRAFT_CREATE_EMPTY';
 export const DRAFT_DISCARD = 'DRAFT_DISCARD';
 export const DRAFT_CHANGE_FIELD = 'DRAFT_CHANGE_FIELD';
+export const DRAFT_FIELDS_EXTERNALLY_CHANGED = 'DRAFT_FIELDS_EXTERNALLY_CHANGED';
+export const DRAFT_CLEAR_FIELD_HIGHLIGHTS = 'DRAFT_CLEAR_FIELD_HIGHLIGHTS';
 export const DRAFT_VALIDATION_ERRORS = 'DRAFT_VALIDATION_ERRORS';
 export const DRAFT_CLEAR_ERRORS = 'DRAFT_CLEAR_ERRORS';
 export const DRAFT_LOCAL_BACKUP_RETRIEVED = 'DRAFT_LOCAL_BACKUP_RETRIEVED';
@@ -416,6 +419,19 @@ export function changeDraftField({
     type: DRAFT_CHANGE_FIELD,
     payload: { field, value, metadata, entries, i18n },
   };
+}
+
+/**
+ * Fields changed from outside the editor (`core/lib/editorApi`): remount their
+ * controls so widgets that only read their value on mount (the richtext
+ * editor) show it, and highlight them until `clearFieldHighlights`.
+ */
+export function markFieldsExternallyChanged(names: string[]) {
+  return { type: DRAFT_FIELDS_EXTERNALLY_CHANGED, payload: { names } };
+}
+
+export function clearFieldHighlights(names: string[]) {
+  return { type: DRAFT_CLEAR_FIELD_HIGHLIGHTS, payload: { names } };
 }
 
 export function changeDraftFieldValidation(
@@ -1030,18 +1046,35 @@ export function persistEntry(collection: Collection) {
         usedSlugs,
       })
       .then(async (newSlug: string) => {
+        // "Entry saved", or, on a backend that reports deploys, "Saved,
+        // publishing" followed later by a notification when a deploy carries
+        // the change live (see actions/deployStatus). The title and the
+        // entry's path on the site let that notification name and link the
+        // entry; both are guarded, since the entry is already committed.
         dispatch(
-          addNotification({
-            message: { key: 'ui.toast.entrySaved' },
-            type: 'success',
-            dismissAfter: 4000,
-          }),
+          notifyEntrySaved(
+            safeEntryLabel(collection, serializedEntry),
+            entryPreviewPath(collection, newSlug, serializedEntry, state.config.slug),
+          ),
         );
 
-        if (assetProxies.length > 0) {
-          await dispatch(loadMedia());
-        }
+        // Release the editor as soon as the entry is committed: entryPersisted
+        // clears `isPersisting` (the save button's spinner and the
+        // unsaved-changes guard). Dispatched after the media library reload
+        // below, a save with media held the editor busy through a refresh of
+        // a panel that isn't on screen. What follows refreshes views the
+        // editor is not waiting on.
         dispatch(entryPersisted(collection, serializedEntry, newSlug));
+
+        // Not awaited, for the same reason. loadMedia handles its own
+        // failures (it dispatches mediaLoadFailed); the catch only keeps an
+        // unexpected rejection from surfacing as an unhandled one, and never
+        // as a failed save, because the save succeeded.
+        if (assetProxies.length > 0) {
+          Promise.resolve(dispatch(loadMedia())).catch((error: unknown) => {
+            console.error('Failed to reload the media library after saving', error);
+          });
+        }
         // Also refreshes relation widget search results, which share the
         // collection tag (DCMS-606).
         queryCore.invalidateTags([
@@ -1049,7 +1082,9 @@ export function persistEntry(collection: Collection) {
           entryTag(collection.name, entry.slug),
           entryTag(collection.name, newSlug),
         ]);
-        if (collection.nested != null) {
+        // A backend that serves listings from a cache the save does not update
+        // in place (Decap Turbo) asks for the reload, which also re-syncs it.
+        if (collection.nested != null || backend.implementation?.reloadEntriesAfterPersist) {
           await dispatch(loadEntries(collection));
         }
         if (entry.slug !== newSlug) {
@@ -1199,7 +1234,8 @@ export function validateMetaField(
       .map(segment => processSegment(segment))
       .join('/');
 
-    if (value !== sanitizedPath) return getPathError(value, 'invalidPath', t);
+    // Slug processing lower-cases each segment, but folder names may keep their case.
+    if (value.toLocaleLowerCase() !== sanitizedPath) return getPathError(value, 'invalidPath', t);
 
     const customPath = selectCustomPath(collection, {
       entry: { meta: { path: value } },

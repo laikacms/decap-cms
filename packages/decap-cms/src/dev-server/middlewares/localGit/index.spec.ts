@@ -53,6 +53,40 @@ describe('localGitMiddleware', () => {
   });
 
   describe('getSchema', () => {
+    it.each([
+      [
+        'getMediaFile',
+        { ...defaultParams, path: '../repo-owned/secret.txt' },
+        '"params.path" must resolve to a path under the configured repository, outside its .git directory',
+      ],
+      [
+        'persistMedia',
+        {
+          ...defaultParams,
+          asset: {
+            path: '../repo-owned/write.txt',
+            content: 'b3V0c2lkZS13cml0ZS1wcm9vZgo=',
+            encoding: 'base64',
+          },
+          options: { commitMessage: 'proof-write' },
+        },
+        '"params.asset.path" must resolve to a path under the configured repository, outside its .git directory',
+      ],
+      [
+        'deleteFile',
+        {
+          ...defaultParams,
+          path: '../repo-owned/delete-me.txt',
+          options: { commitMessage: 'proof-delete' },
+        },
+        '"params.path" must resolve to a path under the configured repository, outside its .git directory',
+      ],
+    ])('should reject sibling-prefix traversal for %s', (action, params, expectedMessage) => {
+      const schema = getSchema({ repoPath: '/Users/user/documents/code/repo' });
+
+      assetFailure(schema.validate({ action, params }), expectedMessage);
+    });
+
     it('should throw on path traversal', () => {
       const schema = getSchema({ repoPath: '/Users/user/documents/code/repo' });
 
@@ -61,7 +95,7 @@ describe('localGitMiddleware', () => {
           action: 'getEntry',
           params: { ...defaultParams, path: '../' },
         }),
-        '"params.path" must resolve to a path under the configured repository',
+        '"params.path" must resolve to a path under the configured repository, outside its .git directory',
       );
     });
 
@@ -84,7 +118,7 @@ describe('localGitMiddleware', () => {
           action: 'entriesByFolder',
           params: { ...defaultParams, folder: '../', extension: 'md', depth: 1 },
         }),
-        '"params.folder" must resolve to a path under the configured repository',
+        '"params.folder" must resolve to a path under the configured repository, outside its .git directory',
       );
     });
 
@@ -107,7 +141,7 @@ describe('localGitMiddleware', () => {
           action: 'getMedia',
           params: { ...defaultParams, mediaFolder: '../' },
         }),
-        '"params.mediaFolder" must resolve to a path under the configured repository',
+        '"params.mediaFolder" must resolve to a path under the configured repository, outside its .git directory',
       );
     });
 

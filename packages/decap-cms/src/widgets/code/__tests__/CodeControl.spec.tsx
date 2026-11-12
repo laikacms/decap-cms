@@ -88,6 +88,16 @@ describe('CodeControl (DCMS-1387)', () => {
     vi.clearAllMocks();
   });
 
+  it('keeps the 300px minimum height for the standalone widget (#8017)', async () => {
+    renderControl();
+    await waitFor(() => expect(lastEditorProps().minHeight).toBe('300px'));
+  });
+
+  it('sizes a code block in the rich text editor to its content (#8017)', async () => {
+    renderControl({ isEditorComponent: true });
+    await waitFor(() => expect(lastEditorProps().minHeight).toBe('0'));
+  });
+
   it('renders with no language selected by default', async () => {
     renderControl();
 

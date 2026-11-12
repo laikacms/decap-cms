@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { addNotification, clearNotifications, dismissNotification } from '@/core/actions/notifications';
+import {
+  addNotification,
+  clearNotifications,
+  dismissNotification,
+  updateNotification,
+} from '@/core/actions/notifications';
 import notifications from '@/core/reducers/notifications';
 
 import type { NotificationsAction } from '@/core/actions/notifications';
@@ -208,5 +213,116 @@ describe('notifications', () => {
   it('should handle NOTIFICATIONS_CLEAR on already empty state', () => {
     const state = notifications(undefined, clearNotifications() as unknown as NotificationsAction);
     expect(state.notifications).toHaveLength(0);
+  });
+
+  // A caller that intends to update a notification has to know its id before
+  // the reducer would mint one.
+  it('keeps an id the caller supplied', () => {
+    const state = notifications(
+      undefined,
+      addNotification({ id: 'save-1', message: 'Publishing', type: 'info' }) as unknown as NotificationsAction,
+    );
+
+    expect(state.notifications[0].id).toBe('save-1');
+  });
+
+  it('mints an id when the caller passes an undefined one', () => {
+    const state = notifications(
+      undefined,
+      addNotification({ id: undefined, message: 'Saved', type: 'success' }) as unknown as NotificationsAction,
+    );
+
+    expect(state.notifications[0].id).toBe('mock-uuid');
+  });
+
+  it('merges an update into the notification, leaving the rest alone', () => {
+    const before: NotificationsState = {
+      notifications: [
+        { id: 'a', message: 'Publishing', type: 'info', dismissAfter: false, spinner: true },
+        { id: 'b', message: 'Something else', type: 'error' },
+      ],
+    };
+
+    const after = notifications(
+      before,
+      updateNotification('a', {
+        message: 'Live',
+        type: 'success',
+        dismissAfter: 8000,
+        spinner: false,
+        link: { url: 'https://site.example', label: 'View' },
+      }) as unknown as NotificationsAction,
+    );
+
+    expect(after.notifications[0]).toEqual({
+      id: 'a',
+      message: 'Live',
+      type: 'success',
+      dismissAfter: 8000,
+      spinner: false,
+      link: { url: 'https://site.example', label: 'View' },
+    });
+    // Identity is how the toast surface spots the change: untouched ones keep theirs.
+    expect(after.notifications[0]).not.toBe(before.notifications[0]);
+    expect(after.notifications[1]).toBe(before.notifications[1]);
+  });
+
+  // The ordinary outcome of the user dismissing a toast mid-job.
+  it('ignores an update for an id it no longer holds', () => {
+    const before: NotificationsState = { notifications: [{ id: 'a', message: 'Publishing', type: 'info' }] };
+
+    const after = notifications(
+      before,
+      updateNotification('gone', { message: 'Live' }) as unknown as NotificationsAction,
+    );
+
+    expect(after.notifications).toEqual(before.notifications);
+  });
+
+  // Two different entries going live are two pieces of news, not a duplicate.
+  it('keeps messages with the same key but different interpolations', () => {
+    const state1 = notifications(
+      undefined,
+      addNotification({
+        message: { key: 'ui.toast.entryLive', entry: 'A' },
+        type: 'success',
+      }) as unknown as NotificationsAction,
+    );
+    const state2 = notifications(
+      state1,
+      addNotification({
+        message: { key: 'ui.toast.entryLive', entry: 'B' },
+        type: 'success',
+      }) as unknown as NotificationsAction,
+    );
+    const state3 = notifications(
+      state2,
+      addNotification({
+        message: { key: 'ui.toast.entryLive', entry: 'B' },
+        type: 'success',
+      }) as unknown as NotificationsAction,
+    );
+
+    expect(state2.notifications).toHaveLength(2);
+    expect(state3.notifications).toHaveLength(2);
+  });
+
+  it('still treats differing details as the same message', () => {
+    const state1 = notifications(
+      undefined,
+      addNotification({
+        message: { key: 'ui.toast.onFailToPersist', details: new Error('a') },
+        type: 'error',
+      }) as unknown as NotificationsAction,
+    );
+    const state2 = notifications(
+      state1,
+      addNotification({
+        message: { key: 'ui.toast.onFailToPersist', details: 'b' },
+        type: 'error',
+      }) as unknown as NotificationsAction,
+    );
+
+    expect(state2.notifications).toHaveLength(1);
   });
 });

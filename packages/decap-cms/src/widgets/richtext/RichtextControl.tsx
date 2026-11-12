@@ -47,10 +47,11 @@ export default class RichtextControl extends React.Component<RichtextControlProp
     super(props);
 
     const stored = localStorage.getItem(MODE_STORAGE_KEY);
+    const allowedModes = this.getAllowedModes(props);
+    // Without a saved preference, start in the first mode listed in `modes`.
     const preferredMode: EditorMode = stored !== null && isEditorMode(stored)
       ? stored
-      : 'rich_text';
-    const allowedModes = this.getAllowedModes(props);
+      : allowedModes[0];
 
     this.state = {
       // When used inside a container/shortcode editor component, default to

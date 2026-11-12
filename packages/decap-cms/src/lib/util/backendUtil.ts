@@ -136,3 +136,17 @@ export function getPathDepth(path: string) {
   const depth = path.split('/').length;
   return depth;
 }
+
+/**
+ * Stable cache key for a files collection, from its paths alone (core passes
+ * no collection name). Sorted, so reordering the config does not orphan cached
+ * rows; FNV-1a, because it must be deterministic, short and synchronous.
+ */
+export function collectionKeyForFiles(paths: string[]) {
+  let hash = 0x811c9dc5;
+  for (const char of [...paths].sort().join('\n')) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return `files:${paths.length}:${hash.toString(36)}`;
+}

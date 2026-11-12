@@ -7,8 +7,10 @@ import type { BackendClass } from '@/lib/backend/index';
 import type {
   CmsAllowedEvent,
   CmsConfig,
+  CmsEditorApi,
   CmsEntryCodec,
   CmsEventName,
+  CmsFieldAction,
   CmsFormatter,
   CmsFormatterFunctions,
   CmsLocaleAction,
@@ -55,6 +57,9 @@ interface Registry {
   eventHandlers: Record<CmsEventName, EventHandler[]>;
   formats: Record<string, CmsFormatter>;
   entryCodecs: CmsEntryCodec[];
+  fieldActions: CmsFieldAction[];
+  /** Set by `core/index`, read by `core/backend`: importing the editor API there would cycle. */
+  editorApi: CmsEditorApi | null;
 }
 
 // Exported so `src/core/README.md`'s documented event lists can be pinned
@@ -108,6 +113,8 @@ const registry: Registry = {
   eventHandlers,
   formats: {},
   entryCodecs: [],
+  fieldActions: [],
+  editorApi: null,
 };
 
 export default {
@@ -150,6 +157,8 @@ export default {
   registerEntryCodec,
   getEntryCodecs,
   getEntryCodec,
+  registerFieldAction,
+  getFieldActions,
 };
 
 /**
@@ -274,12 +283,42 @@ export function registerBackend(name: string, BackendClass: BackendClass) {
   } else {
     registry.backends[name] = {
       init: (config: CmsConfig, opts: Record<string, unknown> = {}) => new BackendClass(config, opts),
+      BackendClass,
     };
   }
 }
 
 export function getBackend(name: string) {
   return registry.backends[name];
+}
+
+/**
+ * Field actions (experimental: may change or go away in any release, minor and
+ * patch included). Buttons beside each top-level field's label in the editor;
+ * an action is called with plain values, never the editor's internals.
+ * Registering an id again replaces the earlier action.
+ */
+export function registerFieldAction(action: CmsFieldAction) {
+  if (!action || typeof action.id !== 'string' || typeof action.label !== 'string') {
+    throw new Error('registerFieldAction needs an id and a label.');
+  }
+  if (typeof action.onClick !== 'function') {
+    throw new Error(`Field action "${action.id}" needs an onClick function.`);
+  }
+  registry.fieldActions = [...registry.fieldActions.filter(a => a.id !== action.id), action];
+}
+
+/** The same array until the next registration, so it is safe as a prop. */
+export function getFieldActions() {
+  return registry.fieldActions;
+}
+
+export function setEditorApi(editorApi: CmsEditorApi | null) {
+  registry.editorApi = editorApi;
+}
+
+export function getEditorApi() {
+  return registry.editorApi;
 }
 
 /**
@@ -346,6 +385,14 @@ interface EventData {
   [key: string]: any;
 }
 
+// Handlers may return either the entry's field data or the complete entry (for
+// example, to update its i18n translations). Content can have a field named
+// `data` too, so the entry's metadata keys must all be there as well.
+function isFullEntry(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  return ['data', 'collection', 'slug', 'path'].every(key => key in value);
+}
+
 export async function invokeEvent({ name, data }: { name: string, data: EventData }) {
   validateTransformEventName(name);
   const handlers = registry.eventHandlers[name];
@@ -354,7 +401,7 @@ export async function invokeEvent({ name, data }: { name: string, data: EventDat
   for (const { handler, options } of handlers) {
     const result = await handler(_data, options);
     if (result !== undefined) {
-      const entry = { ..._data.entry, data: result };
+      const entry = isFullEntry(result) ? result : { ..._data.entry, data: result };
       _data = { ...data, entry };
     }
   }

@@ -3,6 +3,7 @@ import collections from './collections';
 import config from './config';
 import cursors from './cursors';
 import deploys from './deploys';
+import deployStatus from './deployStatus';
 import editorialWorkflow from './editorialWorkflow';
 import entries from './entries';
 import entryDraft from './entryDraft';
@@ -34,6 +35,7 @@ const reducers = {
   medias,
   mediaLibrary,
   deploys,
+  deployStatus,
   globalUI,
   status,
   notifications,

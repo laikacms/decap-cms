@@ -7,6 +7,12 @@ import React from 'react';
 
 import type { CodeControlProps } from './CodeControl';
 
+// Same as CodeControl's getMinHeight; not imported, since that would pull
+// the CodeMirror runtime into this lazy boundary.
+function getMinHeight(isEditorComponent: boolean | undefined): string {
+  return isEditorComponent ? '0' : '300px';
+}
+
 const CodeControl = React.lazy(() => import('./CodeControl'));
 
 export default function CodeControlLazy(props: CodeControlProps) {
@@ -19,7 +25,7 @@ export default function CodeControlLazy(props: CodeControlProps) {
               className={cx(
                 props.classNameWrapper,
                 css`
-                  min-height: 300px;
+                  min-height: ${getMinHeight(props.isEditorComponent)};
                 `,
               )}
             />

@@ -177,7 +177,8 @@ export const defaultRoutingTable: RoutingTable = {
   editRedirect: {
     create: ({ collectionName, slug }) => `/edit/${encodeURIComponent(collectionName)}/${encodeURIComponent(slug)}`,
     get: path => {
-      const match = path.match(/^\/edit\/([^/]+)\/([^/]+)$/);
+      // The slug may contain slashes (a nested entry such as `about/index`).
+      const match = path.match(/^\/edit\/([^/]+)\/(.+)$/);
       if (!match) throw new Error(`Invalid edit path: ${path}`);
       return {
         collectionName: decodeSegment(match[1], `Invalid edit path: ${path}`),
@@ -196,6 +197,13 @@ export const defaultRoutingTable: RoutingTable = {
     create: () => `/admin/config`,
     get: path => {
       if (path !== '/admin/config') throw new Error(`Invalid config editor path: ${path}`);
+      return {};
+    },
+  },
+  deploys: {
+    create: () => `/deploys`,
+    get: path => {
+      if (path !== '/deploys') throw new Error(`Invalid deploys path: ${path}`);
       return {};
     },
   },

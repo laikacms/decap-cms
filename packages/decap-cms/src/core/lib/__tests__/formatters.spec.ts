@@ -13,12 +13,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   assetFilenameFormatter,
   commitMessageFormatter,
+  entryPreviewPath,
   folderFormatter,
   getProcessSegment,
+  getSlugFormatter,
+  MAX_SLUG_BYTES,
   prepareSlug,
   previewUrlFormatter,
+  slugByteBudget,
   slugFormatter,
   summaryFormatter,
+  truncateSlug,
+  utf8ByteLength,
 } from '@/core/lib/formatters';
 import { getFileFromSlug, selectIdentifier, selectInferredField } from '@/core/reducers/collections';
 
@@ -790,6 +796,45 @@ describe('formatters', () => {
     });
   });
 
+  describe('entryPreviewPath', () => {
+    // Feeds the "your change is live" notification's link, so it can point at
+    // the entry rather than the site's home page (see actions/deployStatus).
+    it('returns only the path, never the sentinel base', () => {
+      const date = new Date('2020-01-02T13:28:27.679Z');
+      const path = entryPreviewPath(
+        { preview_path: '{{year}}/{{slug}}', preview_path_date_field: 'customDateField' } as any,
+        'backendSlug',
+        { data: { customDateField: date, slug: 'entrySlug', title: 'title' } } as any,
+        slugConfig as any,
+      );
+
+      expect(path).toBe('/2020/backendslug');
+      expect(path).not.toContain('invalid');
+      expect(path).not.toContain('https://');
+    });
+
+    // Without a preview_path the formatter hands back the base unchanged, and
+    // a link to the site root dressed up as a link to the entry is worse than
+    // the plain site link the notification already falls back to.
+    it('returns undefined for a collection with no preview_path', () => {
+      expect(entryPreviewPath({} as any, 'slug', { data: {} } as any, slugConfig as any)).toBeUndefined();
+    });
+
+    it('returns undefined rather than throwing on a template it cannot compile', () => {
+      expect(() =>
+        entryPreviewPath({ preview_path: '{{unknown_field}}' } as any, 'slug', { data: {} } as any, slugConfig as any)
+      ).not.toThrow();
+    });
+
+    // Matched by parsed origin, not by string prefix: previewUrlFormatter joins
+    // base and path with an unconditional `/`, so this stays a path.
+    it('keeps a host-looking template in the path, where it belongs', () => {
+      expect(
+        entryPreviewPath({ preview_path: '.example.com/evil' } as any, 'slug', { data: {} } as any, slugConfig as any),
+      ).toBe('/.example.com/evil');
+    });
+  });
+
   describe('summaryFormatter', () => {
     it('should return summary from template', () => {
       vi.mocked(selectInferredField).mockReturnValue('date');
@@ -1073,6 +1118,140 @@ describe('formatters', () => {
         { date: new Date(Date.UTC(2026, 6, 28)) },
       );
       expect(result).toBe('2026-07-photo.jpg');
+    });
+  });
+
+  describe('getSlugFormatter', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.spyOn(Date, 'now').mockImplementation(() => new Date('2020-01-01T13:28:27.679Z').valueOf());
+      vi.mocked(selectIdentifier).mockReturnValue('title');
+    });
+
+    const format = (collection: Record<string, unknown>, data: Record<string, unknown>) =>
+      getSlugFormatter(collection as any, data, slugConfig as any);
+
+    it('should apply a suffix to a slug without a path template', () => {
+      expect(format({ slug: '{{slug}}' }, { title: 'Post Title' })('-1')).toBe('post-title-1');
+    });
+
+    it('should apply a suffix to the slug placeholder before the rest of the path', () => {
+      expect(format({ slug: '{{slug}}', path: '{{ slug }}/index' }, { title: 'Post Title' })('-1'))
+        .toBe('post-title-1/index');
+    });
+
+    it('should apply a suffix to the identifier field placeholder in the path', () => {
+      expect(format({ slug: '{{year}}-{{slug}}', path: '{{title}}/index' }, { title: 'Post Title' })('-1'))
+        .toBe('post-title-1/index');
+    });
+
+    it('should apply a suffix to every slug placeholder', () => {
+      expect(format({ slug: '{{slug}}', path: '{{slug}}/{{slug}}' }, { title: 'Post Title' })('-1'))
+        .toBe('post-title-1/post-title-1');
+    });
+
+    it('should apply a suffix to a filtered slug placeholder', () => {
+      // v4 leaves the slug value in a path as the filter made it (upstream
+      // re-sanitizes it, lowercasing an `upper` filter's output).
+      expect(format({ slug: '{{slug}}', path: '{{slug | upper}}/index' }, { title: 'Post Title' })('-1'))
+        .toBe('POST-TITLE-1/index');
+    });
+
+    it('should not apply a suffix to variables that only start with the identifier field', () => {
+      expect(
+        format({ slug: '{{slug}}', path: '{{title_short}}/index' }, { title: 'Post Title', title_short: 'Short' })(
+          '-1',
+        ),
+      ).toBe('short/index-1');
+    });
+
+    it('should apply a suffix to the complete path when it has no slug placeholder', () => {
+      expect(format({ slug: '{{slug}}', path: 'sub_dir/{{year}}/index' }, { title: 'Post Title' })('-1'))
+        .toBe('sub_dir/2020/index-1');
+    });
+
+    it('should resolve the date once for every suffix', () => {
+      const formatSlug = format(
+        { slug: '{{year}}-{{month}}-{{day}}-{{slug}}', path: '{{year}}/{{slug}}' },
+        { title: 'Post Title' },
+      );
+
+      expect(formatSlug()).toBe('2020/2020-01-01-post-title');
+      expect(formatSlug('-1')).toBe('2020/2020-01-01-post-title-1');
+      expect(Date.now).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('slug byte budget', () => {
+    const slugConfig = { encoding: 'unicode', clean_accents: false, sanitize_replacement: '-' } as const;
+    const vietnamese = 'Hướng dẫn chăm sóc da mặt cho làn da nhạy cảm '.repeat(20);
+    const encoder = new TextEncoder();
+
+    function bytes(str: string) {
+      return encoder.encode(str).length;
+    }
+
+    it('counts bytes the way UTF-8 does', () => {
+      expect(utf8ByteLength('abc')).toBe(3);
+      expect(utf8ByteLength(vietnamese)).toBe(bytes(vietnamese));
+      expect(utf8ByteLength('😀')).toBe(4);
+    });
+
+    it('caps a long CJK title in bytes even within max_length', () => {
+      vi.mocked(selectIdentifier).mockReturnValueOnce('title');
+      // Within the 100 character max_length, but 3 bytes each: the filename
+      // sanitizer stops it at 255 bytes, too long for a workflow branch name.
+      const slug = slugFormatter({} as any, { title: '漢'.repeat(150) }, slugConfig);
+      expect(bytes(`refs/heads/cms/posts/${slug}`)).toBeGreaterThan(255);
+
+      const truncated = truncateSlug(slug, MAX_SLUG_BYTES, slugConfig);
+
+      expect(bytes(truncated)).toBeLessThanOrEqual(MAX_SLUG_BYTES);
+      expect(slug.startsWith(truncated)).toBe(true);
+    });
+
+    it('caps a long Vietnamese slug in bytes and ends on a word', () => {
+      const slug = vietnamese.trim().replace(/ /g, '-');
+      const truncated = truncateSlug(slug, MAX_SLUG_BYTES, slugConfig);
+
+      expect(bytes(truncated)).toBeLessThanOrEqual(MAX_SLUG_BYTES);
+      expect(truncated).not.toMatch(/[-_./\s]$/);
+      expect(slug.startsWith(truncated)).toBe(true);
+    });
+
+    it('leaves a slug within the budget alone', () => {
+      expect(truncateSlug('post-title', MAX_SLUG_BYTES, slugConfig)).toBe('post-title');
+    });
+
+    it('never splits a surrogate pair', () => {
+      expect(truncateSlug('abc😀😀', 9, slugConfig)).toBe('abc😀');
+      expect(truncateSlug('abc😀😀', 8, slugConfig)).toBe('abc😀');
+      expect(truncateSlug('abc😀😀', 6, slugConfig)).toBe('abc');
+    });
+
+    it('drops separators the cut leaves at the end, including a custom replacement', () => {
+      expect(truncateSlug('one-two-three', 8, slugConfig)).toBe('one-two');
+      expect(truncateSlug('dir/sub/name', 8, slugConfig)).toBe('dir/sub');
+      expect(truncateSlug('one__two__three', 10, { sanitize_replacement: '__' })).toBe('one__two');
+    });
+
+    it('keeps the editorial workflow branch within what GitHub accepts', () => {
+      const collection = { name: 'x'.repeat(100) } as any;
+      const budget = slugByteBudget(collection, {} as any);
+
+      expect(budget).toBeLessThan(MAX_SLUG_BYTES);
+      expect(bytes(`refs/heads/cms/${collection.name}/`) + budget).toBeLessThanOrEqual(255);
+    });
+
+    it('makes room for the repository under open authoring', () => {
+      const config = { backend: { open_authoring: true, repo: `owner/${'r'.repeat(80)}` } } as any;
+      const budget = slugByteBudget({ name: 'posts' } as any, config);
+
+      expect(bytes(`refs/heads/cms/${config.backend.repo}/posts/`) + budget).toBeLessThanOrEqual(255);
+    });
+
+    it('allows the full budget for a short collection name', () => {
+      expect(slugByteBudget({ name: 'posts' } as any, {} as any)).toBe(MAX_SLUG_BYTES);
     });
   });
 });

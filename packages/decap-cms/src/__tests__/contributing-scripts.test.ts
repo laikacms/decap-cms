@@ -59,8 +59,20 @@ describe('CONTRIBUTING.md#scripts', () => {
     const typecheckScript = decapCmsPackageJson.scripts?.typecheck ?? '';
     expect(typecheckScript.length).toBeGreaterThan(0);
 
-    const decapCmsInvocationCount = typecheckScript.split('&&').filter(part => part.includes('tsc')).length;
-    const invocationCount = decapCmsInvocationCount;
+    const countTsc = (script: string) => script.split('&&').filter(part => part.includes('tsc')).length;
+    const decapCmsInvocationCount = countTsc(typecheckScript);
+    // The documented total sums every packages/* workspace's `typecheck`.
+    const packagesDir = path.join(REPO_ROOT, 'packages');
+    const invocationCount = fs
+      .readdirSync(packagesDir, { withFileTypes: true })
+      .filter(entry => entry.isDirectory() && fs.existsSync(path.join(packagesDir, entry.name, 'package.json')))
+      .map(entry => {
+        const pkg = JSON.parse(fs.readFileSync(path.join(packagesDir, entry.name, 'package.json'), 'utf8')) as {
+          scripts?: Record<string, string>,
+        };
+        return countTsc(pkg.scripts?.typecheck ?? '');
+      })
+      .reduce((sum, count) => sum + count, 0);
     // Every `-p <path>` project flag after the first bare `tsc --noEmit`
     // invocation names a tsconfig the doc row should call out.
     const projectConfigs = [...typecheckScript.matchAll(/tsc\s+-p\s+(\S+)/g)].map(match => match[1]);

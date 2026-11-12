@@ -54,6 +54,8 @@ interface MediaRouteParams {}
 
 interface ConfigEditorRouteParams {}
 
+interface DeploysRouteParams {}
+
 export interface RoutingTable {
   /** `/` — home; redirects to the first non-hidden collection (or `renderRoot`). */
   root: {
@@ -116,6 +118,15 @@ export interface RoutingTable {
   configEditor: {
     create: (params?: ConfigEditorRouteParams) => string,
     get: (path: string) => ConfigEditorRouteParams,
+  };
+  /**
+   * `/deploys` - the site's recent deploys and whether the latest change is
+   * live. Only rendered for a backend that reports deploys (see
+   * `@/lib/backend/deployStatus`); every other backend gets the not-found page.
+   */
+  deploys: {
+    create: (params?: DeploysRouteParams) => string,
+    get: (path: string) => DeploysRouteParams,
   };
 }
 

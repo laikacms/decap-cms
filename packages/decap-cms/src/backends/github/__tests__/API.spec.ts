@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 
 import API from '@/backends/github/API';
+import { formatNoteBody } from '@/lib/backend/index';
+
+vi.mock('@/ui', () => ({ showAlert: vi.fn() }));
 
 global.fetch = vi.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
 
@@ -910,5 +913,110 @@ describe('github API', () => {
     expect(api.getBranchPullRequest).toHaveBeenCalledWith('cms/collection/slug');
     expect(api.request).toHaveBeenCalledTimes(1);
     expect(api.request).toHaveBeenCalledWith(`/repos/repo/commits/${sha}/status`);
+  });
+
+  describe('parseCommentToNote', () => {
+    // The body encoding itself is lib/backend's (see notesFormat.spec); what is
+    // GitHub's is how a comment maps onto a note when the marker is silent.
+    function api() {
+      return new API({ repo: 'owner/repo' });
+    }
+
+    function asComment(body) {
+      return {
+        id: 7,
+        body,
+        user: { login: 'decap-turbo[bot]', avatar_url: 'https://avatar' },
+        created_at: '2026-01-01T00:00:00Z',
+      };
+    }
+
+    it('falls back to the comment account when the note records no author', () => {
+      const note = api().parseCommentToNote(asComment('just a comment'));
+
+      expect(note.author).toBe('decap-turbo[bot]');
+      expect(note.authorId).toBeUndefined();
+      expect(note.avatarUrl).toBe('https://avatar');
+      expect(note.content).toBe('just a comment');
+    });
+
+    it('prefers the recorded author, and drops the poster avatar with it', () => {
+      // A recorded author means the account that posted is not the person, so
+      // its avatar would mislabel the note. The pane shows initials instead.
+      const body = formatNoteBody({
+        content: 'hello',
+        resolved: false,
+        author: 'Decap Tester',
+        authorId: 'u-1',
+      });
+
+      const note = api().parseCommentToNote(asComment(body));
+
+      expect(note.author).toBe('Decap Tester');
+      expect(note.authorId).toBe('u-1');
+      expect(note.avatarUrl).toBeUndefined();
+    });
+
+    it('rejects a note whose body is only the marker', () => {
+      expect(() => api().parseCommentToNote(asComment('<!-- DecapCMS Note {"resolved":false} -->\n   '))).toThrow(
+        'Empty note content',
+      );
+    });
+
+    it('rejects a malformed comment', () => {
+      expect(() => api().parseCommentToNote({ id: 1 })).toThrow('Invalid comment structure');
+    });
+  });
+
+  describe('getEntryNotes', () => {
+    it('skips a marker-only comment instead of blanking the whole thread', async () => {
+      const api = new API({ repo: 'owner/repo' });
+      const user = { login: 'ada', avatar_url: 'https://avatar' };
+
+      api.findEntryIssue = vi.fn().mockResolvedValue({ number: 3, html_url: 'https://issue' });
+      api.requestAllPages = vi.fn().mockResolvedValue([
+        { id: 1, body: 'first', user, created_at: '2026-01-01T00:00:00Z' },
+        { id: 2, body: '<!-- DecapCMS Note {"resolved":false} -->\n', user, created_at: '' },
+        { id: 3, body: 'third', user, created_at: '2026-01-03T00:00:00Z' },
+      ]);
+
+      const notes = await api.getEntryNotes('posts', 'my-post');
+
+      expect(notes.map(note => note.id)).toEqual(['1', '3']);
+      expect(notes[0].issueUrl).toBe('https://issue');
+    });
+  });
+
+  describe('listUnpublishedBranches', () => {
+    function pullRequest(ref: string, labels: string[]) {
+      return { head: { ref, repo: { fork: false } }, labels: labels.map(name => ({ name })) };
+    }
+
+    it('reads the open pull request list once when nothing needs migrating', async () => {
+      const api = new API({ branch: 'main', repo: 'owner/repo', cmsLabelPrefix: 'decap-cms/' } as any);
+      api.requestAllPages = vi
+        .fn()
+        .mockResolvedValue([pullRequest('cms/posts/a-post', ['decap-cms/pending_review'])]) as any;
+
+      await expect(api.listUnpublishedBranches()).resolves.toEqual(['cms/posts/a-post']);
+
+      // The labelled and unlabelled sets are two filters over the same page,
+      // so asking for both must not cost two identical round trips.
+      expect(api.requestAllPages).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-reads the list after a migration, because migrating is what adds the label', async () => {
+      const api = new API({ branch: 'main', repo: 'owner/repo', cmsLabelPrefix: 'decap-cms/' } as any);
+      api.requestAllPages = vi
+        .fn()
+        .mockResolvedValueOnce([pullRequest('cms/posts/legacy', [])])
+        .mockResolvedValueOnce([pullRequest('cms/posts/legacy', ['decap-cms/draft'])]) as any;
+      api.migratePullRequest = vi.fn().mockResolvedValue(undefined) as any;
+
+      await expect(api.listUnpublishedBranches()).resolves.toEqual(['cms/posts/legacy']);
+
+      expect(api.migratePullRequest).toHaveBeenCalledTimes(1);
+      expect(api.requestAllPages).toHaveBeenCalledTimes(2);
+    });
   });
 });

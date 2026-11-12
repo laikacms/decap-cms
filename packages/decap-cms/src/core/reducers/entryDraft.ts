@@ -16,11 +16,13 @@ import {
   ADD_DRAFT_ENTRY_MEDIA_FILE,
   DRAFT_CHANGE_FIELD,
   DRAFT_CLEAR_ERRORS,
+  DRAFT_CLEAR_FIELD_HIGHLIGHTS,
   DRAFT_CREATE_DUPLICATE_FROM_ENTRY,
   DRAFT_CREATE_EMPTY,
   DRAFT_CREATE_FROM_ENTRY,
   DRAFT_CREATE_FROM_LOCAL_BACKUP,
   DRAFT_DISCARD,
+  DRAFT_FIELDS_EXTERNALLY_CHANGED,
   DRAFT_LOCAL_BACKUP_RETRIEVED,
   DRAFT_VALIDATION_ERRORS,
   ENTRY_DELETE_SUCCESS,
@@ -29,11 +31,18 @@ import {
   ENTRY_PERSIST_SUCCESS,
   REMOVE_DRAFT_ENTRY_MEDIA_FILE,
 } from '@/core/actions/entries';
+import {
+  DRAFT_NOTE_ADD,
+  DRAFT_NOTE_DELETE,
+  DRAFT_NOTE_UPDATE,
+  DRAFT_NOTES_LOAD,
+} from '@/core/actions/notesActionTypes';
 import { duplicateI18nFields, getDataPath } from '@/core/lib/i18n';
 import { sanitizeSlug } from '@/core/lib/urlHelper';
 import { basename, getNestedValue, join, randomUUID } from '@/lib/util/index';
 import { selectFolderEntryExtension, selectHasMetaPath } from './collections';
 
+import type { Note } from '@/lib/backend/index';
 import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsMediaFileMap } from '@/lib/util/index';
 import type { AnyAction } from 'redux';
 
@@ -47,6 +56,20 @@ export type EntryDraft = {
   fieldsErrors?: Record<string, unknown>,
   hasChanged: boolean,
   key: string,
+  /**
+   * Notes of the open entry (decaporg #7563). Absent until loaded; every new
+   * draft starts from `initialState`, so they never carry over to another
+   * entry.
+   */
+  notes?: Note[],
+  /**
+   * Per top-level field: how often it was changed from outside the editor
+   * (`core/lib/editorApi`), used in its control's React key so the widget
+   * remounts with the new value. Absent until first used.
+   */
+  fieldRevisions?: Record<string, number>,
+  /** Top-level fields highlighted right now after an outside change. */
+  fieldHighlights?: Record<string, boolean>,
   // Carried over verbatim across draft resets, including when it is still
   // undecided (undefined); see DCMS-1157 below.
   localBackup?: Omit<EntryDraft, 'localBackup'> | undefined,
@@ -154,9 +177,49 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
     case DRAFT_DISCARD:
       return initialState;
 
+    case DRAFT_NOTES_LOAD:
+      state.notes = action.payload.notes;
+      break;
+
+    case DRAFT_NOTE_ADD:
+      state.notes = [...(state.notes ?? []), action.payload.note];
+      break;
+
+    case DRAFT_NOTE_UPDATE:
+      state.notes = (state.notes ?? []).map(note =>
+        note.id === action.payload.id ? { ...note, ...action.payload.updates } : note
+      );
+      break;
+
+    case DRAFT_NOTE_DELETE:
+      state.notes = (state.notes ?? []).filter(note => note.id !== action.payload.id);
+      break;
+
     case DRAFT_LOCAL_BACKUP_RETRIEVED: {
       const { entry } = action.payload;
       state.localBackup = { entry, fieldsErrors: {}, hasChanged: false, key: '' };
+      break;
+    }
+
+    case DRAFT_FIELDS_EXTERNALLY_CHANGED: {
+      const { names } = action.payload as { names: string[] };
+      const revisions = { ...state.fieldRevisions };
+      const highlights = { ...state.fieldHighlights };
+      for (const name of names) {
+        revisions[name] = (revisions[name] ?? 0) + 1;
+        highlights[name] = true;
+      }
+      state.fieldRevisions = revisions;
+      state.fieldHighlights = highlights;
+      break;
+    }
+
+    case DRAFT_CLEAR_FIELD_HIGHLIGHTS: {
+      const { names } = action.payload as { names: string[] };
+      if (!state.fieldHighlights) break;
+      const highlights = { ...state.fieldHighlights };
+      for (const name of names) delete highlights[name];
+      state.fieldHighlights = highlights;
       break;
     }
 

@@ -18,6 +18,8 @@ import { GitLabBackend } from '@/backends/gitlab/index';
 import { LocalFsBackend } from '@/backends/local-fs/index';
 import { ProxyBackend } from '@/backends/proxy/index';
 import { TestBackend } from '@/backends/test/index';
+import { DecapTurboGitHubBackend } from '@/backends/turbo-github/index';
+import { DecapTurboGitLabBackend } from '@/backends/turbo-gitlab/index';
 // Widgets
 import DecapCmsWidgetBoolean from '@/widgets/boolean/index';
 import DecapCmsWidgetCode from '@/widgets/code/index';
@@ -30,7 +32,7 @@ import DecapCmsWidgetMap from '@/widgets/map/index';
 import DecapCmsWidgetNumber from '@/widgets/number/index';
 import DecapCmsWidgetObject from '@/widgets/object/index';
 import DecapCmsWidgetRelation from '@/widgets/relation/index';
-import DecapCmsWidgetRichtext from '@/widgets/richtext/index';
+import DecapCmsWidgetRichtext, { imageEditorComponent, registerEditorComponent } from '@/widgets/richtext/index';
 import DecapCmsWidgetSelect from '@/widgets/select/index';
 import DecapCmsWidgetString from '@/widgets/string/index';
 import DecapCmsWidgetText from '@/widgets/text/index';
@@ -57,6 +59,8 @@ export const registerExtensions = once(function registerExtensions(): void {
   CMS.registerBackend('test-repo', TestBackend);
   CMS.registerBackend('proxy', ProxyBackend);
   CMS.registerBackend('local-fs', LocalFsBackend);
+  CMS.registerBackend('turbo-github', DecapTurboGitHubBackend);
+  CMS.registerBackend('turbo-gitlab', DecapTurboGitLabBackend);
   [
     DecapCmsWidgetString.Widget(),
     DecapCmsWidgetNumber.Widget(),
@@ -79,6 +83,9 @@ export const registerExtensions = once(function registerExtensions(): void {
     // when it is used.
     DecapCmsWidgetRichtext.Widget({ name: 'markdown' }),
   ].forEach(widget => CMS.registerWidget(widget));
+  // The default "Image" editor component, so richtext fields can insert
+  // images out of the box, as in upstream Decap.
+  registerEditorComponent(imageEditorComponent);
 
   // Entry codecs (whole-entry-file encodings) are registerable too; bare
   // consumers register only what their collections use. The markdown codec

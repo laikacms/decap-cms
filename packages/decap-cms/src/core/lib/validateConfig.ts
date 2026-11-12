@@ -1,4 +1,5 @@
 import { getExtensionFormatters, getFrontmatterFormats } from '@/core/formats/formats';
+import { mediaProcessingSchema } from '@/lib/util/mediaProcessing';
 import { I18N_FIELD, I18N_STRUCTURE } from './i18n';
 import { validateJSONSchema } from './jsonSchemaValidator';
 import { getWidgets } from './registry';
@@ -198,6 +199,7 @@ export function getConfigSchema(): JSONSchema {
       media_folder: { type: 'string', examples: ['assets/uploads'] },
       public_folder: { type: 'string', examples: ['/uploads'] },
       media_folder_relative: { type: 'boolean' },
+      media_processing: mediaProcessingSchema,
       media_library: {
         type: 'object',
         properties: {
@@ -289,6 +291,13 @@ export function getConfigSchema(): JSONSchema {
                   preview_path: { type: 'string' },
                   preview_path_date_field: { type: 'string' },
                   preview_path_preserve_slashes: { type: 'boolean' },
+                  editor: {
+                    type: 'object',
+                    properties: {
+                      preview: { type: 'boolean' },
+                      notes: { type: 'boolean' },
+                    },
+                  },
                   fields: fieldsConfig(),
                 },
                 required: ['name', 'label', 'file', 'fields'],
@@ -322,6 +331,7 @@ export function getConfigSchema(): JSONSchema {
               properties: {
                 preview: { type: 'boolean' },
                 visualEditing: { type: 'boolean' },
+                notes: { type: 'boolean' },
               },
             },
             format: { type: 'string' },
@@ -369,6 +379,7 @@ export function getConfigSchema(): JSONSchema {
             },
             view_filters: viewFilters,
             view_groups: viewGroups,
+            limit: { type: 'number' },
             nested: {
               type: 'object',
               properties: {
@@ -426,6 +437,7 @@ export function getConfigSchema(): JSONSchema {
         type: 'object',
         properties: {
           preview: { type: 'boolean' },
+          notes: { type: 'boolean' },
         },
       },
     },

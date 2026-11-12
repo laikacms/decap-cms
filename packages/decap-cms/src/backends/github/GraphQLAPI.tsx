@@ -24,6 +24,10 @@ import type { GraphQLFormattedError } from 'graphql';
 
 const NO_CACHE = 'no-cache';
 const CACHE_FIRST = 'cache-first';
+// GitHub rejects GraphQL queries nested more than 25 levels deep, and every
+// level of the files query adds two more, so deeper trees are listed with the
+// REST API instead.
+const MAX_GRAPHQL_FILES_DEPTH = 11;
 
 interface TreeEntry {
   object?: {
@@ -113,6 +117,7 @@ export default class GraphQLAPI extends API {
   }
 
   reset() {
+    super.reset();
     return this.client.resetStore();
   }
 
@@ -364,6 +369,9 @@ export default class GraphQLAPI extends API {
   }
 
   async listFiles(path: string, { repoURL = this.repoURL, branch = this.branch, depth = 1 } = {}) {
+    if (depth > MAX_GRAPHQL_FILES_DEPTH) {
+      return super.listFiles(path, { repoURL, branch, depth });
+    }
     const { owner, name } = this.getOwnerAndNameFromRepoUrl(repoURL);
     const folder = trim(path, '/');
     const { data } = await this.query({

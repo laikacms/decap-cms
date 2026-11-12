@@ -1,4 +1,4 @@
-import { flow, get, isError, partialRight, trimEnd, trimStart } from 'lodash-es';
+import { escapeRegExp, flow, get, isError, partialRight, trimEnd, trimStart } from 'lodash-es';
 
 import { FILES } from '@/core/constants/collectionTypes';
 import { COMMIT_AUTHOR, COMMIT_DATE } from '@/core/constants/commitProps';
@@ -129,14 +129,25 @@ export function getProcessSegment(
       ])(value);
 }
 
-export function slugFormatter(
+/**
+ * Returns a formatter for an entry slug and its optional collection path.
+ *
+ * The entry identifier, date and slug are resolved once so the formatter
+ * renders the same base slug for every collision suffix. A suffix is inserted
+ * after each `{{slug}}` or identifier field variable in the path, including
+ * filtered ones, so nested bundle paths become `post-1/index` instead of
+ * `post/index-1`. Paths without such a variable get the suffix appended to the
+ * whole path.
+ */
+export function getSlugFormatter(
   collection: Collection,
   entryData: Record<string, unknown>,
   slugConfig?: CmsSlug,
-) {
+): (suffix?: string) => string {
   const slugTemplate = collection.slug || '{{slug}}';
 
-  const identifier = get(entryData, keyToPathArray(selectIdentifier(collection) as string));
+  const identifierField = selectIdentifier(collection) as string;
+  const identifier = get(entryData, keyToPathArray(identifierField));
   if (!identifier) {
     throw new Error(
       'Collection must have a field name that is a valid entry identifier, or must have `identifier_field` set',
@@ -155,17 +166,104 @@ export function slugFormatter(
   );
 
   if (!collection.path) {
-    return slug;
-  } else {
-    const pathTemplate = prepareSlug(collection.path as string);
-    return compileStringTemplate(
-      pathTemplate,
-      date,
-      slug,
-      entryData,
-      (value: string, key: string) => key === 'slug' ? value : processSegment(value, key),
-    );
+    return (suffix = '') => `${slug}${suffix}`;
   }
+
+  const pathTemplate = prepareSlug(collection.path as string);
+  const slugVariablePattern = new RegExp(
+    `{{ *(?:slug|${escapeRegExp(identifierField)}) *(?:\\|[^}]*)?}}`,
+    'gi',
+  );
+  const processPathSegment = (value: string, key: string) => key === 'slug' ? value : processSegment(value, key);
+
+  return (suffix = '') => {
+    const suffixedTemplate = pathTemplate.replace(slugVariablePattern, match => `${match}${suffix}`);
+    const path = compileStringTemplate(suffixedTemplate, date, slug, entryData, processPathSegment);
+    return suffixedTemplate === pathTemplate ? `${path}${suffix}` : path;
+  };
+}
+
+export function slugFormatter(
+  collection: Collection,
+  entryData: Record<string, unknown>,
+  slugConfig?: CmsSlug,
+) {
+  return getSlugFormatter(collection, entryData, slugConfig)();
+}
+
+/**
+ * Upper bound on a generated slug, in UTF-8 bytes. Leaves a filename of
+ * slug + extension under NAME_MAX (255 bytes) with room for any plausible
+ * extension, including i18n ones such as `.en.md`.
+ */
+export const MAX_SLUG_BYTES = 200;
+
+/**
+ * The longest a git ref may be on GitHub is 255 bytes including `refs/heads/`,
+ * which leaves 244 for the branch name itself.
+ */
+const MAX_BRANCH_BYTES = 255 - 'refs/heads/'.length;
+
+/** Below this, a slug stops being useful; only an absurd config gets here. */
+const MIN_SLUG_BYTES = 32;
+
+function codePointBytes(char: string) {
+  const codePoint = char.codePointAt(0) as number;
+  if (codePoint < 0x80) return 1;
+  if (codePoint < 0x800) return 2;
+  if (codePoint < 0x10000) return 3;
+  return 4;
+}
+
+export function utf8ByteLength(str: string) {
+  return Array.from(str).reduce((total, char) => total + codePointBytes(char), 0);
+}
+
+/**
+ * How many bytes a newly generated slug may take. Editorial workflow keeps
+ * each entry on a branch named `cms/<collection>/<slug>` (open authoring puts
+ * `<owner>/<repo>/` in front of the collection), and the branch is parsed back
+ * into collection and slug, so the slug itself is what has to fit: hashing
+ * the branch name would break that round trip.
+ */
+export function slugByteBudget(collection: Collection, config?: CmsConfig) {
+  const repo = config?.backend?.open_authoring ? config.backend.repo : undefined;
+  const branchPrefix = ['cms', repo, collection.name].filter(Boolean).join('/') + '/';
+  const budget = Math.min(MAX_SLUG_BYTES, MAX_BRANCH_BYTES - utf8ByteLength(branchPrefix));
+  return Math.max(budget, MIN_SLUG_BYTES);
+}
+
+/**
+ * Cut a slug down to `maxBytes` of UTF-8. Cuts on a code point, so no
+ * surrogate pair is split, then drops whatever separators the cut left at the
+ * end (`-`, `_`, `.`, `/`, whitespace, or the configured replacement): a ref
+ * may not end in `/` or `.`, and a dangling dash is never what anyone wants.
+ */
+export function truncateSlug(slug: string, maxBytes: number, slugConfig?: CmsSlug) {
+  if (utf8ByteLength(slug) <= maxBytes) {
+    return slug;
+  }
+
+  let bytes = 0;
+  const kept: string[] = [];
+  for (const char of Array.from(slug)) {
+    bytes += codePointBytes(char);
+    if (bytes > maxBytes) break;
+    kept.push(char);
+  }
+
+  const replacement = slugConfig?.sanitize_replacement;
+  let truncated = kept.join('');
+  let previous;
+  do {
+    previous = truncated;
+    truncated = truncated.replace(/[\s\-_./]+$/u, '');
+    if (replacement && truncated.endsWith(replacement)) {
+      truncated = truncated.slice(0, -replacement.length);
+    }
+  } while (truncated !== previous);
+
+  return truncated;
 }
 
 export function previewUrlFormatter(
@@ -348,4 +446,37 @@ export function assetFilenameFormatter(
   } while (usesIndex && existing.has(resolved.toLowerCase()) && index < 10000);
 
   return resolved;
+}
+
+/**
+ * Where an entry will live on the built site, as a path (`/blog/my-post/`), so
+ * whichever deploy carries the change can supply its own host. Undefined
+ * without a `preview_path`, rather than a site-root link posing as the entry.
+ */
+export function entryPreviewPath(
+  collection: Collection,
+  slug: string,
+  entry: EntryMap,
+  slugConfig?: CmsSlug,
+): string | undefined {
+  // A base that cannot be confused for a real one, since only the path is kept.
+  const SENTINEL = 'https://entry-preview-path.invalid';
+
+  try {
+    const url = previewUrlFormatter(SENTINEL, collection, slug, entry, slugConfig);
+    if (!url) {
+      return undefined;
+    }
+    // Compared as parsed origins, not a string prefix: `${SENTINEL}.example.com`
+    // would pass startsWith while naming another host.
+    const parsed = new URL(url);
+    if (parsed.origin !== new URL(SENTINEL).origin) {
+      return undefined;
+    }
+    const path = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    return path && path !== '/' ? path : undefined;
+  } catch {
+    // A malformed template must not cost the editor their save notification.
+    return undefined;
+  }
 }

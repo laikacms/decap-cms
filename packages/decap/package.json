@@ -1,0 +1,72 @@
+{
+  "name": "@decap/cli",
+  "version": "0.2.0-beta.0",
+  "description": "The Decap command line: run the local proxy server for the CMS, manage Decap Turbo from your terminal, and connect AI agents to it over MCP",
+  "license": "MIT",
+  "homepage": "https://github.com/decaporg/decap-cms/tree/main/packages/decap",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/decaporg/decap-cms.git",
+    "directory": "packages/decap"
+  },
+  "bugs": {
+    "url": "https://github.com/decaporg/decap-cms/issues"
+  },
+  "keywords": [
+    "decap-cms",
+    "decap-turbo",
+    "cli",
+    "mcp",
+    "proxy",
+    "local-backend",
+    "experimental"
+  ],
+  "type": "module",
+  "bin": {
+    "decap": "./dist/decap.js"
+  },
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "build": "node ./scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --color \"src/**/*.ts\" \"scripts/**/*.mjs\" \"*.{ts,mjs}\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ci": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "catalog:",
+    "dotenv": "catalog:",
+    "simple-git": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@types/node": "catalog:",
+    "decap-cms": "workspace:*",
+    "esbuild": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-prettier": "catalog:",
+    "eslint-import-resolver-typescript": "catalog:",
+    "eslint-plugin-import-x": "catalog:",
+    "eslint-plugin-unicorn": "catalog:",
+    "globals": "catalog:",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

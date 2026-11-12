@@ -1,7 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { describe, expect, it, vi } from 'vitest';
 
-import { authenticateUser, loginUser, logoutUser, sessionExpired } from '@/core/actions/auth';
+import {
+  authenticateUser,
+  authError,
+  loginUser,
+  logoutUser,
+  sessionExpired,
+  sessionInvalidated,
+} from '@/core/actions/auth';
+import { CONFIG_SUCCESS } from '@/core/actions/config';
 import { NOTIFICATION_SEND } from '@/core/actions/notifications';
 import { currentBackend } from '@/core/backend';
 import auth, { defaultState } from '@/core/reducers/auth';
@@ -107,6 +115,97 @@ describe('auth', () => {
       ) as { payload: { message: { details: string } } } | undefined;
       expect(notification).toBeDefined();
       expect(notification!.payload.message.details).toMatch(/not granted/);
+    });
+  });
+
+  describe('backend permissions', () => {
+    function makeStore(config: Record<string, unknown>) {
+      const dispatched: { type: string, payload?: any }[] = [];
+      const captureMiddleware = () => (next: (action: unknown) => unknown) => (action: unknown) => {
+        dispatched.push(action as { type: string });
+        return next(action);
+      };
+      const store = configureStore({
+        reducer: { auth, config: (state = config) => state },
+        middleware: getDefaultMiddleware => getDefaultMiddleware().concat(captureMiddleware),
+      });
+      return { store, dispatched };
+    }
+    const config = { collections: [{ name: 'posts' }, { name: 'pages' }] };
+
+    it('re-filters the config against the permissions a login resolves', async () => {
+      vi.mocked(currentBackend).mockReturnValue({
+        authenticate: vi.fn().mockResolvedValue({
+          name: 'joe',
+          token: 'token',
+          permissions: { collections: { pages: 'none' } },
+        }),
+      } as never);
+      const { store, dispatched } = makeStore(config);
+
+      await store.dispatch(loginUser(credentials) as never);
+
+      const success = dispatched.find(action => action.type === CONFIG_SUCCESS);
+      expect(success?.payload.collections).toEqual([{ name: 'posts' }]);
+    });
+
+    it('re-filters on a restored session too', async () => {
+      vi.mocked(currentBackend).mockReturnValue({
+        currentUser: vi.fn().mockResolvedValue({
+          name: 'joe',
+          token: 'token',
+          permissions: { collections: { posts: 'view' } },
+        }),
+      } as never);
+      const { store, dispatched } = makeStore(config);
+
+      await store.dispatch(authenticateUser() as never);
+
+      const success = dispatched.find(action => action.type === CONFIG_SUCCESS);
+      expect(success?.payload.collections[0]).toEqual({
+        name: 'posts',
+        create: false,
+        delete: false,
+        publish: false,
+      });
+    });
+
+    it('leaves the config alone for a user without permissions', async () => {
+      vi.mocked(currentBackend).mockReturnValue({
+        authenticate: vi.fn().mockResolvedValue({ name: 'joe', token: 'token' }),
+      } as never);
+      const { store, dispatched } = makeStore(config);
+
+      await store.dispatch(loginUser(credentials) as never);
+
+      expect(dispatched.some(action => action.type === CONFIG_SUCCESS)).toBe(false);
+    });
+  });
+
+  describe('sessionInvalidated', () => {
+    it('sets the reason as the auth error', () => {
+      expect(auth(undefined, authError('Gone')).error).toBe('Gone');
+    });
+
+    it('shows the reason and logs out once a user is logged in', async () => {
+      const logout = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(currentBackend).mockReturnValue({ logout } as never);
+      const user = { name: 'joe', token: 'token' };
+      const store = configureStore({
+        reducer: { auth, config: () => ({}) },
+        preloadedState: { auth: { ...defaultState, user }, config: {} },
+      });
+
+      store.dispatch(sessionInvalidated('Session expired. Please log in again.') as never);
+      await vi.waitFor(() => expect(logout).toHaveBeenCalledTimes(1));
+
+      expect(store.getState().auth.user).toBeUndefined();
+      expect(store.getState().auth.error).toBe('Session expired. Please log in again.');
+
+      // A second report finds nobody logged in and does nothing.
+      store.dispatch(sessionInvalidated('again') as never);
+      expect(logout).toHaveBeenCalledTimes(1);
+      expect(store.getState().auth.error).toBe('Session expired. Please log in again.');
     });
   });
 });

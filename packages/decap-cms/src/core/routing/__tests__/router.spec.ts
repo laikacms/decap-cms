@@ -3,7 +3,7 @@ vi.mock('@/lib/routing/hashHistory');
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createDefaultRouter } from '@/core/routing/defaultRouter';
-import { defaultRoutingTable, matchRoute } from '@/core/routing/router';
+import { createRoutePath, defaultRoutingTable, matchRoute } from '@/core/routing/router';
 import { createHashHistory } from '@/lib/routing/hashHistory';
 
 import type { HashHistory, HistoryBlocker, HistoryListener } from '@/lib/routing/hashHistory';
@@ -136,6 +136,15 @@ describe('router', () => {
       });
     });
 
+    it('parses a nested entry slug from a legacy edit URL', () => {
+      expect(defaultRoutingTable.editRedirect.get('/edit/pages/about/index')).toEqual({
+        collectionName: 'pages',
+        slug: 'about/index',
+      });
+      const path = defaultRoutingTable.editRedirect.create({ collectionName: 'pages', slug: 'about/index' });
+      expect(defaultRoutingTable.editRedirect.get(path)).toEqual({ collectionName: 'pages', slug: 'about/index' });
+    });
+
     it('round-trips the media route (DCMS-578)', () => {
       const path = defaultRoutingTable.media.create();
       expect(path).toBe('/media');
@@ -143,6 +152,17 @@ describe('router', () => {
 
       const match = matchRoute(defaultRoutingTable, path);
       expect(match).toEqual({ key: 'media', params: {} });
+    });
+
+    it('round-trips the deploys route', () => {
+      const path = defaultRoutingTable.deploys.create();
+      expect(path).toBe('/deploys');
+      expect(defaultRoutingTable.deploys.get(path)).toEqual({});
+      expect(createRoutePath(defaultRoutingTable, 'deploys')).toBe('/deploys');
+
+      expect(matchRoute(defaultRoutingTable, path)).toEqual({ key: 'deploys', params: {} });
+      expect(() => defaultRoutingTable.deploys.get('/deploys/extra')).toThrow('Invalid deploys path');
+      expect(matchRoute(defaultRoutingTable, '/deploys/')).toBeNull();
     });
   });
 

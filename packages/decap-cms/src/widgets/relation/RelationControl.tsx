@@ -32,6 +32,15 @@ import { SortableArea, SortableHandle, SortableItem } from '@/ui/default/index';
 
 import type { CmsConfig, CmsFieldBase, CmsFieldRelation } from '@/lib/util/index';
 
+// Long entry titles truncate with an ellipsis instead of stretching the
+// option list or the selected-value chips; the full text is in the tooltip.
+const truncatedLabelStyle: React.CSSProperties = {
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+};
+
 interface RelationOption {
   label: string;
   value: string;
@@ -175,6 +184,21 @@ function relationOptionsKey(
   return `relation-options/${collection}/${searchFields.join(',')}/${term || ''}/${file || ''}`;
 }
 
+function isFilterMatch(data: Record<string, unknown>, filter: FilterObj): boolean {
+  // Resolve wildcard paths the same way as value_field; a list field matches
+  // when any of its items is in the filter values.
+  const values = stringTemplate.expandPath({ data, path: filter.field }).flatMap(path => {
+    const value = get(data, path);
+    return Array.isArray(value) ? value : [value];
+  });
+  // Compare as strings: entry data may be parsed as numbers or booleans while
+  // filter values are strings, and vice versa.
+  const filterValues = filter.values.map(String);
+  return values.some(
+    value => value != null && typeof value !== 'object' && filterValues.includes(String(value)),
+  );
+}
+
 function getSelectedValue({
   value,
   options,
@@ -258,12 +282,14 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     const [initialOptions, setInitialOptions] = React.useState<RelationOption[]>([]);
     const [searchOptions, setSearchOptions] = React.useState<RelationOption[] | null>(null);
     const [isLoading, setIsLoading] = React.useState(false);
-    const [quickAdd, setQuickAdd] = React.useState<{
-      values: Record<string, string>,
-      submitting: boolean,
-      error: string | null,
-      errors: Record<string, string>,
-    } | null>(null);
+    const [quickAdd, setQuickAdd] = React.useState<
+      {
+        values: Record<string, string>,
+        submitting: boolean,
+        error: string | null,
+        errors: Record<string, string>,
+      } | null
+    >(null);
     const mountedRef = React.useRef(false);
 
     function isMultiple(): boolean {
@@ -278,10 +304,15 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       return v !== undefined && v !== null && v !== '';
     }
 
+    function getHitData(hit: Hit): Record<string, unknown> {
+      const localeData = locale != null ? hit.i18n?.[locale]?.data : null;
+      // A translation only has its translatable fields, so fall back to the
+      // default locale for the rest (e.g. a filter on an `i18n: none` field).
+      return localeData ? { ...hit.data, ...localeData } : hit.data;
+    }
+
     function parseNestedFields(hit: Hit, fieldName: string): string {
-      const hitData = locale != null && hit.i18n != null && hit.i18n[locale] != null
-        ? hit.i18n[locale].data
-        : hit.data;
+      const hitData = getHitData(hit);
       const templateVars = stringTemplate.extractTemplateVars(fieldName);
       if (templateVars.length <= 0) {
         return get(hitData, fieldName) as string;
@@ -299,21 +330,8 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       const filters = getFieldArray(field.filters);
 
       return hits.reduce((acc: RelationOption[], hit: Hit) => {
-        if (
-          filters.every((filter: unknown) => {
-            const filterObj = filter as FilterObj;
-            const fieldKeys = filterObj.field.split('.');
-            let v: unknown = hit.data;
-            for (let i = 0; i < fieldKeys.length; i++) {
-              if (Object.prototype.hasOwnProperty.call(v, fieldKeys[i])) {
-                v = (v as Record<string, unknown>)[fieldKeys[i]];
-              } else {
-                return false;
-              }
-            }
-            return filterObj.values.includes(v);
-          })
-        ) {
+        const hitData = getHitData(hit);
+        if (filters.every((filter: unknown) => isFilterMatch(hitData, filter as FilterObj))) {
           const valuesPaths = stringTemplate.expandPath({ data: hit.data, path: valueField });
           for (let i = 0; i < valuesPaths.length; i++) {
             const label = displayField
@@ -436,7 +454,15 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
             )) as QueryResult;
 
             const hits = result.payload.hits || [];
-            const options = pho(hits);
+            let options = pho(hits);
+            // In multiple mode only the selected values are "initial" options;
+            // keeping every default hit here crowded search results out.
+            if (f.multiple) {
+              const selected = (getSelectedOptions(v) ?? []).map(
+                (val: RelationOption) => val.value ?? val,
+              ) as unknown[];
+              options = options.filter(o => selected.includes(o.value));
+            }
 
             if (mountedRef.current) {
               setInitialOptions(options);
@@ -544,7 +570,8 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
               const hits = queryResult.payload.hits || [];
               const options = pho(hits);
               const optionsLength = getOptionsLength(f);
-              const uniq = uniqOptions(io, options).slice(0, optionsLength);
+              // Search results first, then the initial options.
+              const uniq = uniqOptions(options, io).slice(0, optionsLength);
               setSearchOptions(uniq);
               setIsLoading(false);
             })
@@ -575,7 +602,9 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     };
     const queryOptions = parseHitOptions(queryHits || []);
     const baseOptions = uniqOptions(initialOptions, queryOptions);
-    const options = searchOptions === null ? baseOptions : uniqOptions(initialOptions, searchOptions);
+    // While searching, list the results first (decaporg #7968). The initial
+    // options follow so selected values can always be resolved.
+    const options = searchOptions === null ? baseOptions : uniqOptions(searchOptions, initialOptions);
     const selectedValue = getSelectedValue({ options, value, isMultiple: isMulti });
     const selectedList = isMulti ? ((selectedValue as RelationOption[] | null) ?? []) : [];
 
@@ -602,9 +631,9 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     // (`!== false`) rather than opt-in so relation fields against
     // collections/tests that don't set `create` at all keep working; only an
     // explicit `create: false` hides the button.
-    const canQuickAdd = Boolean(onQuickCreateEntry) &&
-      Boolean(field.allow_quick_add ?? field.allowQuickAdd) &&
-      targetCollection?.create !== false;
+    const canQuickAdd = Boolean(onQuickCreateEntry)
+      && Boolean(field.allow_quick_add ?? field.allowQuickAdd)
+      && targetCollection?.create !== false;
 
     // Looks up the *target* collection's own field definition for a
     // quick-add form field, so the dialog can mirror `label`/`required`/
@@ -668,8 +697,8 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     function selectQuickAddOption(option: RelationOption) {
       if (isMultiple()) {
         const pool = uniqOptions(initialOptions, [option]);
-        const currentSelected
-          = (getSelectedValue({ options: pool, value, isMultiple: true }) as RelationOption[] | null) ?? [];
+        const currentSelected =
+          (getSelectedValue({ options: pool, value, isMultiple: true }) as RelationOption[] | null) ?? [];
         handleChange([...currentSelected, option]);
       } else {
         handleChange(option);
@@ -716,7 +745,11 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
                 ref={sortableRef as React.Ref<HTMLDivElement>}
                 style={{ opacity: isDragging ? 0.5 : undefined }}
               >
-                <SortableHandle>{option.label}</SortableHandle>
+                <SortableHandle>
+                  <span title={option.label} style={{ ...truncatedLabelStyle, display: 'block', maxWidth: 300 }}>
+                    {option.label}
+                  </span>
+                </SortableHandle>
                 <ComboboxChipRemove />
               </ComboboxChip>
             )}
@@ -729,43 +762,47 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     return (
       <>
         <div className={classNameWrapper}>
-        <Combobox<RelationOption, boolean>
-          multiple={isMulti}
-          items={options}
-          filter={null}
-          value={selectedValue as RelationOption | RelationOption[] | null}
-          onValueChange={selected => handleChange(selected as RelationOption | RelationOption[] | null)}
-          onInputValueChange={handleInputValueChange}
-          isItemEqualToValue={isSameOption}
-          openOnInputClick
-        >
-          <ComboboxInputGroup onFocus={setActiveStyle} onBlur={setInactiveStyle}>
-            {isMulti
-              ? (
-                <SortableArea onSortEnd={onSortEnd(selectedList)}>
-                  <ComboboxChips>{chipList}</ComboboxChips>
-                </SortableArea>
-              )
-              : <ComboboxInput id={forID} placeholder="" {...inputAriaProps} />}
-            {isClearable && <ComboboxClear />}
-            <ComboboxIcon />
-          </ComboboxInputGroup>
-          <ComboboxPortal>
-            <ComboboxPositioner sideOffset={4}>
-              <ComboboxPopup>
-                <ComboboxStatus>{isLoading ? 'Loading…' : null}</ComboboxStatus>
-                <ComboboxEmpty>{isLoading ? 'Loading…' : 'No options'}</ComboboxEmpty>
-                <ComboboxList>
-                  {(option: RelationOption) => (
-                    <ComboboxItem key={option.value} value={option}>
-                      {option.label}
-                    </ComboboxItem>
-                  )}
-                </ComboboxList>
-              </ComboboxPopup>
-            </ComboboxPositioner>
-          </ComboboxPortal>
-        </Combobox>
+          <Combobox<RelationOption, boolean>
+            multiple={isMulti}
+            items={options}
+            filter={null}
+            value={selectedValue as RelationOption | RelationOption[] | null}
+            onValueChange={selected => handleChange(selected as RelationOption | RelationOption[] | null)}
+            onInputValueChange={handleInputValueChange}
+            isItemEqualToValue={isSameOption}
+            openOnInputClick
+          >
+            <ComboboxInputGroup onFocus={setActiveStyle} onBlur={setInactiveStyle}>
+              {isMulti
+                ? (
+                  <SortableArea onSortEnd={onSortEnd(selectedList)}>
+                    <ComboboxChips>{chipList}</ComboboxChips>
+                  </SortableArea>
+                )
+                : <ComboboxInput id={forID} placeholder="" {...inputAriaProps} />}
+              {isClearable && <ComboboxClear />}
+              <ComboboxIcon />
+            </ComboboxInputGroup>
+            <ComboboxPortal>
+              <ComboboxPositioner sideOffset={4}>
+                {
+                  /* As wide as the input, so long labels truncate instead of
+                  widening the menu past the field. */
+                }
+                <ComboboxPopup style={{ maxWidth: 'var(--anchor-width)' }}>
+                  <ComboboxStatus>{isLoading ? 'Loading…' : null}</ComboboxStatus>
+                  <ComboboxEmpty>{isLoading ? 'Loading…' : 'No options'}</ComboboxEmpty>
+                  <ComboboxList>
+                    {(option: RelationOption) => (
+                      <ComboboxItem key={option.value} value={option} title={option.label}>
+                        <span style={{ ...truncatedLabelStyle, display: 'block' }}>{option.label}</span>
+                      </ComboboxItem>
+                    )}
+                  </ComboboxList>
+                </ComboboxPopup>
+              </ComboboxPositioner>
+            </ComboboxPortal>
+          </Combobox>
         </div>
         {canQuickAdd && (
           <Button type="button" variant="outline" size="sm" onClick={openQuickAdd} css={{ marginTop: 8 }}>
